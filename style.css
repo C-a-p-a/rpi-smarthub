@@ -1,0 +1,12 @@
+body {
+margin: 0;
+background: #0e0e11;
+color: white;
+font-family: system-ui, sans-serif;
+}
+
+#clock {
+font-size: 4rem;
+padding: 2rem;
+}
+
