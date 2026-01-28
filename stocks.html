@@ -10,6 +10,65 @@
     <link rel="stylesheet" href="detail-style.css">
 </head>
 <body>
+    <style>
+        .market-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 0.6rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .market-banner.closed {
+            background: linear-gradient(90deg, #dc2626, #b91c1c);
+            color: white;
+        }
+
+        .market-banner.open {
+            background: linear-gradient(90deg, #16a34a, #15803d);
+            color: white;
+        }
+
+        .market-banner.premarket {
+            background: linear-gradient(90deg, #d97706, #b45309);
+            color: white;
+        }
+
+        .market-banner-icon {
+            animation: pulse 2s infinite;
+        }
+
+        .market-banner.open .market-banner-icon {
+            animation: pulse-green 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+
+        .market-banner-time {
+            position: absolute;
+            right: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+    </style>
+
     <div class="detail-page">
         <header class="detail-header">
             <div class="detail-header-left">
@@ -32,6 +91,13 @@
         </header>
 
         <div class="detail-content">
+            <!-- Market Status Banner -->
+            <div id="market-banner" class="market-banner closed">
+                <span class="market-banner-icon">●</span>
+                <span id="market-status-text">US MARKET STENGT</span>
+                <span class="market-banner-time">New York: <span id="ny-time">--:--</span></span>
+            </div>
+            
             <div id="stocks-content" class="loading">Laster aksjer...</div>
         </div>
     </div>
@@ -72,7 +138,7 @@
             if (indices.length > 0) {
                 html += `
                     <div class="detail-card">
-                        <div class="detail-card-title">📊 Markedsindekser</div>
+                        <div class="detail-card-title">📊 Markedsindekser - Dagens Utvikling</div>
                         <div class="detail-grid" style="grid-template-columns: repeat(${indices.length}, 1fr);">
                 `;
                 for (const index of indices) {
@@ -85,7 +151,7 @@
             if (myStocks.length > 0) {
                 html += `
                     <div class="detail-card">
-                        <div class="detail-card-title">💼 Mine aksjer</div>
+                        <div class="detail-card-title">💼 Mine aksjer - Dagens Utvikling</div>
                         <div class="detail-grid detail-grid-4">
                 `;
                 for (const stock of myStocks) {
@@ -98,7 +164,7 @@
             if (mag7.length > 0) {
                 html += `
                     <div class="detail-card">
-                        <div class="detail-card-title">🚀 Magnificent 7</div>
+                        <div class="detail-card-title">🚀 Magnificent 7 - Dagens Utvikling</div>
                         <div class="detail-grid" style="grid-template-columns: repeat(7, 1fr);">
                 `;
                 for (const stock of mag7) {
@@ -119,24 +185,6 @@
                 }
                 html += '</div></div>';
             }
-
-            // Market status info
-            const now = new Date();
-            const nyHour = parseInt(new Date().toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false }));
-            const isWeekday = now.getDay() !== 0 && now.getDay() !== 6;
-            const isMarketOpen = nyHour >= 9 && nyHour < 16 && isWeekday;
-
-            html += `
-                <div class="detail-card" style="margin-top: 0.5rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background: ${isMarketOpen ? 'var(--success)' : 'var(--danger)'};"></span>
-                        ${isMarketOpen ? 'Markedet er åpent' : 'Markedet er stengt'}
-                        <span style="margin-left: auto;">
-                            New York: ${new Date().toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: true })}
-                        </span>
-                    </div>
-                </div>
-            `;
 
             container.innerHTML = html;
         }
@@ -174,11 +222,71 @@
             `;
         }
 
+        // Update market status banner
+        function updateMarketBanner() {
+            const banner = document.getElementById('market-banner');
+            const statusText = document.getElementById('market-status-text');
+            const nyTimeEl = document.getElementById('ny-time');
+            
+            const now = new Date();
+            const nyTime = new Date().toLocaleString('en-US', { 
+                timeZone: 'America/New_York', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            const nyHour = parseInt(new Date().toLocaleString('en-US', { 
+                timeZone: 'America/New_York', 
+                hour: 'numeric', 
+                hour12: false 
+            }));
+            const nyMinute = parseInt(new Date().toLocaleString('en-US', { 
+                timeZone: 'America/New_York', 
+                minute: 'numeric'
+            }));
+            
+            const dayOfWeek = new Date().toLocaleString('en-US', { 
+                timeZone: 'America/New_York', 
+                weekday: 'short' 
+            });
+            const isWeekday = !['Sat', 'Sun'].includes(dayOfWeek);
+            
+            // Market hours: 9:30 AM - 4:00 PM ET
+            // Pre-market: 4:00 AM - 9:30 AM ET
+            // After-hours: 4:00 PM - 8:00 PM ET
+            const timeInMinutes = nyHour * 60 + nyMinute;
+            const marketOpen = 9 * 60 + 30;  // 9:30 AM
+            const marketClose = 16 * 60;      // 4:00 PM
+            const preMarketStart = 4 * 60;    // 4:00 AM
+            const afterHoursEnd = 20 * 60;    // 8:00 PM
+            
+            nyTimeEl.textContent = nyTime;
+            
+            if (!isWeekday) {
+                banner.className = 'market-banner closed';
+                statusText.textContent = 'US MARKET STENGT (HELG)';
+            } else if (timeInMinutes >= marketOpen && timeInMinutes < marketClose) {
+                banner.className = 'market-banner open';
+                statusText.textContent = 'US MARKET ÅPENT';
+            } else if (timeInMinutes >= preMarketStart && timeInMinutes < marketOpen) {
+                banner.className = 'market-banner premarket';
+                statusText.textContent = 'PRE-MARKET';
+            } else if (timeInMinutes >= marketClose && timeInMinutes < afterHoursEnd) {
+                banner.className = 'market-banner premarket';
+                statusText.textContent = 'AFTER-HOURS';
+            } else {
+                banner.className = 'market-banner closed';
+                statusText.textContent = 'US MARKET STENGT';
+            }
+        }
+
         // Fetch and render
         fetchStocks();
+        updateMarketBanner();
 
         // Update every 60 seconds
         setInterval(fetchStocks, 60000);
+        setInterval(updateMarketBanner, 30000);
     </script>
 </body>
 </html>

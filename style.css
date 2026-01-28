@@ -125,6 +125,10 @@ html, body {
     border-bottom: 1px solid var(--border);
 }
 
+.walk-time {
+    opacity: 0.8;
+}
+
 /* === Clickable Widgets === */
 .widget-link,
 .ticker-link {
@@ -711,17 +715,22 @@ html, body {
 
 .ticker-label {
     color: white;
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
+    padding: 0.35rem 0.6rem;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    min-width: 4.5rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     flex-shrink: 0;
 }
 
 .news-label {
-    background: #d93025;
+    background: #1E88E5; /* Default NRK blue, changes dynamically */
 }
 
 .stocks-label {
@@ -750,12 +759,56 @@ html, body {
     animation: newsFadeIn 0.3s ease forwards;
 }
 
-/* === Stocks Display === */
+/* === Stocks Display - Horizontal Scrolling Ticker === */
 .stocks-display {
-    display: flex;
-    gap: 1rem;
+    flex: 1;
+    overflow: hidden;
     font-size: 0.8rem;
     color: var(--text-primary);
+}
+
+.stocks-ticker-wrapper {
+    overflow: hidden;
+    width: 100%;
+}
+
+.stocks-ticker-content {
+    display: flex;
+    gap: 2rem;
+    animation: stocksScroll 40s linear infinite;
+    width: max-content;
+}
+
+.stocks-ticker-content:hover {
+    animation-play-state: paused;
+}
+
+@keyframes stocksScroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.stock-ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    padding: 0.2rem 0;
+}
+
+.stock-category-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.ticker-error {
+    color: var(--text-muted);
 }
 
 .stock-item {
@@ -833,6 +886,11 @@ html, body {
 .widget-calendar {
     flex: 1;
     min-height: 0;
+    max-width: 50%;
+}
+
+.right-column .widget-link:has(.widget-calendar) {
+    max-width: 50%;
 }
 
 .calendar-content {

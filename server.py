@@ -80,8 +80,13 @@ def clear_all():
     """Clear entire shopping list"""
     save_shopping_list({"items": [], "last_updated": None})
 
-# NRK RSS Feed URL
-NRK_RSS_URL = "https://www.nrk.no/toppsaker.rss"
+# RSS Feed URLs
+NEWS_FEEDS = [
+    {"name": "E24", "url": "https://e24.no/rss2/", "color": "#FF6D00"},
+    {"name": "TV2 Nyheter", "url": "https://www.tv2.no/rss/nyheter", "color": "#E53935"},
+    {"name": "TV2 Sport", "url": "https://www.tv2.no/rss/sport", "color": "#43A047"},
+    {"name": "TV2 Underholdning", "url": "https://www.tv2.no/rss/underholdning", "color": "#AB47BC"},
+]
 
 # Stock symbols to track
 # premarket: True = show pre-market/after-hours price when available
@@ -90,7 +95,6 @@ NRK_RSS_URL = "https://www.nrk.no/toppsaker.rss"
 STOCK_SYMBOLS = [
     # Indices
     {"symbol": "^IXIC", "name": "NASDAQ", "premarket": False, "is_index": True, "category": "index"},
-    {"symbol": "^GSPC", "name": "S&P 500", "premarket": False, "is_index": True, "category": "index"},
     # My stocks
     {"symbol": "ONDS", "name": "ONDS", "premarket": True, "is_index": False, "category": "mine"},
     {"symbol": "IREN", "name": "IREN", "premarket": True, "is_index": False, "category": "mine"},
@@ -105,10 +109,7 @@ STOCK_SYMBOLS = [
     {"symbol": "META", "name": "Meta", "premarket": True, "is_index": False, "category": "mag7"},
     {"symbol": "TSLA", "name": "Tesla", "premarket": True, "is_index": False, "category": "mag7"},
     # ETFs / Funds
-    {"symbol": "SPY", "name": "S&P 500 ETF", "premarket": True, "is_index": False, "category": "fund"},
     {"symbol": "QQQ", "name": "Nasdaq 100 ETF", "premarket": True, "is_index": False, "category": "fund"},
-    {"symbol": "VOO", "name": "Vanguard S&P 500", "premarket": True, "is_index": False, "category": "fund"},
-    {"symbol": "VTI", "name": "Vanguard Total", "premarket": True, "is_index": False, "category": "fund"},
     {"symbol": "NLR", "name": "Uranium & Nuclear", "premarket": True, "is_index": False, "category": "fund"},
     {"symbol": "DFNS", "name": "VanEck Defense", "premarket": True, "is_index": False, "category": "fund"},
     {"symbol": "UFO", "name": "VanEck Space", "premarket": True, "is_index": False, "category": "fund"},
@@ -155,14 +156,73 @@ def departures():
 
 @app.route('/news')
 def news():
+    """Return list of available news feeds"""
+    return jsonify(NEWS_FEEDS)
+
+@app.route('/news/<int:feed_index>')
+def news_feed(feed_index):
+    """Return specific RSS feed by index"""
     try:
-        r = requests.get(NRK_RSS_URL, headers={
+        if feed_index < 0 or feed_index >= len(NEWS_FEEDS):
+            return jsonify({"error": "Invalid feed index"}), 400
+        
+        feed = NEWS_FEEDS[feed_index]
+        r = requests.get(feed["url"], headers={
             "User-Agent": "SmartHub-WH56/1.0"
-        })
+        }, timeout=10)
         r.raise_for_status()
         return Response(r.content, mimetype='application/rss+xml')
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/news/all')
+def news_all():
+    """Return all news feeds combined as JSON"""
+    import xml.etree.ElementTree as ET
+    from datetime import datetime
+    
+    all_items = []
+    
+    for i, feed in enumerate(NEWS_FEEDS):
+        try:
+            r = requests.get(feed["url"], headers={
+                "User-Agent": "SmartHub-WH56/1.0"
+            }, timeout=10)
+            r.raise_for_status()
+            
+            root = ET.fromstring(r.content)
+            items = root.findall('.//item')
+            
+            for item in items[:5]:  # Max 5 per source
+                title = item.find('title')
+                link = item.find('link')
+                description = item.find('description')
+                pubDate = item.find('pubDate')
+                
+                all_items.append({
+                    "title": title.text if title is not None else "",
+                    "link": link.text if link is not None else "",
+                    "description": description.text if description is not None else "",
+                    "pubDate": pubDate.text if pubDate is not None else "",
+                    "source": feed["name"],
+                    "sourceColor": feed["color"],
+                    "sourceIndex": i
+                })
+        except Exception as e:
+            print(f"Error fetching {feed['name']}: {e}")
+            continue
+    
+    # Sort by date (newest first)
+    def parse_date(item):
+        try:
+            from email.utils import parsedate_to_datetime
+            return parsedate_to_datetime(item["pubDate"])
+        except:
+            return datetime.min
+    
+    all_items.sort(key=parse_date, reverse=True)
+    
+    return jsonify(all_items)
 
 
 @app.route('/stocks')
@@ -521,9 +581,9 @@ def handle_telegram_message(message):
     # Commands
     if text.lower() == "/start":
         send_telegram_message(chat_id, 
-            "👋 Hei! Jeg er W56 Handleliste-boten!\n\n"
-            "<b>Kommandoer:</b>\n"
-            "/add [vare] - Legg til vare\n"
+            "👋 Hei!\n\n"
+            "<b>Her er noen nyttige kommandoer:</b>\n"
+            "[vare] - Legg til vare\n"
             "/list - Se handlelisten\n"
             "/done [vare] - Merk som ferdig\n"
             "/remove [vare] - Fjern vare\n"
