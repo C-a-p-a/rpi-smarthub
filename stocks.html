@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=720, initial-scale=1.0, user-scalable=no">
+    <title>Aksjer - Smarthub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="detail-style.css">
+</head>
+<body>
+    <div class="detail-page">
+        <header class="detail-header">
+            <div class="detail-header-left">
+                <a href="/" class="back-button">←</a>
+                <div>
+                    <h1 class="detail-title">Aksjer</h1>
+                    <div class="detail-subtitle">Porteføljeoversikt</div>
+                </div>
+            </div>
+            <div class="detail-header-center">
+                <div id="detail-clock" class="detail-clock">--:--:--</div>
+                <div id="detail-date" class="detail-date">Laster dato...</div>
+            </div>
+            <div class="detail-header-right">
+                <div class="countdown-display">
+                    <span>Tilbake om</span>
+                    <span id="countdown">3:00</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="detail-content">
+            <div id="stocks-content" class="loading">Laster aksjer...</div>
+        </div>
+    </div>
+
+    <script src="detail-page.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/stocks';
+
+        async function fetchStocks() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                renderStocks(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('stocks-content').innerHTML = 
+                    '<div class="empty-state">Kunne ikke laste aksjer</div>';
+            }
+        }
+
+        function renderStocks(stocks) {
+            const container = document.getElementById('stocks-content');
+
+            if (!stocks || stocks.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ingen aksjedata tilgjengelig</div>';
+                return;
+            }
+
+            // Group by category
+            const indices = stocks.filter(s => s.category === 'index');
+            const myStocks = stocks.filter(s => s.category === 'mine');
+            const mag7 = stocks.filter(s => s.category === 'mag7');
+            const funds = stocks.filter(s => s.category === 'fund');
+
+            let html = '';
+
+            // Market indices
+            if (indices.length > 0) {
+                html += `
+                    <div class="detail-card">
+                        <div class="detail-card-title">📊 Markedsindekser</div>
+                        <div class="detail-grid" style="grid-template-columns: repeat(${indices.length}, 1fr);">
+                `;
+                for (const index of indices) {
+                    html += renderStockCard(index, true);
+                }
+                html += '</div></div>';
+            }
+
+            // My stocks
+            if (myStocks.length > 0) {
+                html += `
+                    <div class="detail-card">
+                        <div class="detail-card-title">💼 Mine aksjer</div>
+                        <div class="detail-grid detail-grid-4">
+                `;
+                for (const stock of myStocks) {
+                    html += renderStockCard(stock, false);
+                }
+                html += '</div></div>';
+            }
+
+            // Magnificent 7
+            if (mag7.length > 0) {
+                html += `
+                    <div class="detail-card">
+                        <div class="detail-card-title">🚀 Magnificent 7</div>
+                        <div class="detail-grid" style="grid-template-columns: repeat(7, 1fr);">
+                `;
+                for (const stock of mag7) {
+                    html += renderStockCard(stock, false);
+                }
+                html += '</div></div>';
+            }
+
+            // Funds / ETFs
+            if (funds.length > 0) {
+                html += `
+                    <div class="detail-card">
+                        <div class="detail-card-title">📈 Fond & ETF-er</div>
+                        <div class="detail-grid detail-grid-4">
+                `;
+                for (const stock of funds) {
+                    html += renderStockCard(stock, false);
+                }
+                html += '</div></div>';
+            }
+
+            // Market status info
+            const now = new Date();
+            const nyHour = parseInt(new Date().toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false }));
+            const isWeekday = now.getDay() !== 0 && now.getDay() !== 6;
+            const isMarketOpen = nyHour >= 9 && nyHour < 16 && isWeekday;
+
+            html += `
+                <div class="detail-card" style="margin-top: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: ${isMarketOpen ? 'var(--success)' : 'var(--danger)'};"></span>
+                        ${isMarketOpen ? 'Markedet er åpent' : 'Markedet er stengt'}
+                        <span style="margin-left: auto;">
+                            New York: ${new Date().toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: true })}
+                        </span>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function renderStockCard(stock, isIndex) {
+            const changeClass = stock.change > 0 ? 'positive' : stock.change < 0 ? 'negative' : 'neutral';
+            const changePrefix = stock.change > 0 ? '+' : '';
+            
+            let sessionBadge = '';
+            if (stock.session === 'PM') {
+                sessionBadge = '<span style="background: var(--warning); color: var(--bg-primary); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.6rem; margin-left: 0.25rem;">PM</span>';
+            } else if (stock.session === 'AH') {
+                sessionBadge = '<span style="background: var(--accent); color: var(--bg-primary); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.6rem; margin-left: 0.25rem;">AH</span>';
+            }
+
+            if (isIndex) {
+                return `
+                    <div class="stock-card">
+                        <div class="stock-symbol">${stock.symbol}</div>
+                        <div class="stock-change ${changeClass}" style="font-size: 1.75rem;">
+                            ${changePrefix}${stock.change.toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="stock-card">
+                    <div class="stock-symbol">${stock.symbol}${sessionBadge}</div>
+                    <div class="stock-price">$${stock.price.toFixed(2)}</div>
+                    <div class="stock-change ${changeClass}">
+                        ${changePrefix}${stock.change.toFixed(2)}%
+                    </div>
+                </div>
+            `;
+        }
+
+        // Fetch and render
+        fetchStocks();
+
+        // Update every 60 seconds
+        setInterval(fetchStocks, 60000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=720, initial-scale=1.0, user-scalable=no">
+    <title>Værmelding - Smarthub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="detail-style.css">
+</head>
+<body>
+    <div class="detail-page">
+        <header class="detail-header">
+            <div class="detail-header-left">
+                <a href="/" class="back-button">←</a>
+                <div>
+                    <h1 class="detail-title">Værmelding</h1>
+                    <div class="detail-subtitle">Møhlenpris, Bergen</div>
+                </div>
+            </div>
+            <div class="detail-header-center">
+                <div id="detail-clock" class="detail-clock">--:--:--</div>
+                <div id="detail-date" class="detail-date">Laster dato...</div>
+            </div>
+            <div class="detail-header-right">
+                <div class="countdown-display">
+                    <span>Tilbake om</span>
+                    <span id="countdown">3:00</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="detail-content">
+            <div id="weather-detail" class="loading">Laster værdata...</div>
+        </div>
+    </div>
+
+    <script src="detail-page.js"></script>
+    <script>
+        // Weather API config
+        const WEATHER_LAT = 60.3897;
+        const WEATHER_LON = 5.3186;
+        const MET_API_URL = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${WEATHER_LAT}&lon=${WEATHER_LON}`;
+
+        const weatherDescriptions = {
+            'clearsky': 'Klarvær',
+            'fair': 'Lettskyet',
+            'partlycloudy': 'Delvis skyet',
+            'cloudy': 'Skyet',
+            'lightrainshowers': 'Lette regnbyger',
+            'rainshowers': 'Regnbyger',
+            'heavyrainshowers': 'Kraftige regnbyger',
+            'lightrainshowersandthunder': 'Lette regnbyger og torden',
+            'rainshowersandthunder': 'Regnbyger og torden',
+            'heavyrainshowersandthunder': 'Kraftige regnbyger og torden',
+            'lightsleetshowers': 'Lette sluddbyger',
+            'sleetshowers': 'Sluddbyger',
+            'heavysleetshowers': 'Kraftige sluddbyger',
+            'lightsnowshowers': 'Lette snøbyger',
+            'snowshowers': 'Snøbyger',
+            'heavysnowshowers': 'Kraftige snøbyger',
+            'lightrain': 'Lett regn',
+            'rain': 'Regn',
+            'heavyrain': 'Kraftig regn',
+            'lightrainandthunder': 'Lett regn og torden',
+            'rainandthunder': 'Regn og torden',
+            'heavyrainandthunder': 'Kraftig regn og torden',
+            'lightsleet': 'Lett sludd',
+            'sleet': 'Sludd',
+            'heavysleet': 'Kraftig sludd',
+            'lightsnow': 'Lett snø',
+            'snow': 'Snø',
+            'heavysnow': 'Kraftig snø',
+            'fog': 'Tåke'
+        };
+
+        const dayNames = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+
+        function getWeatherDescription(symbolCode) {
+            const baseCode = symbolCode.replace(/_day|_night/g, '');
+            return weatherDescriptions[baseCode] || symbolCode;
+        }
+
+        function getWeatherIconUrl(symbolCode) {
+            return `https://cdn.jsdelivr.net/gh/nrkno/yr-weather-symbols@main/dist/svg/${symbolCode}.svg`;
+        }
+
+        // SVG fallback icons
+        const fallbackIcons = {
+            sun: `<svg viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="20" fill="#FBBF24"/><g stroke="#FBBF24" stroke-width="4" stroke-linecap="round"><line x1="50" y1="10" x2="50" y2="22"/><line x1="50" y1="78" x2="50" y2="90"/><line x1="10" y1="50" x2="22" y2="50"/><line x1="78" y1="50" x2="90" y2="50"/></g></svg>`,
+            cloud: `<svg viewBox="0 0 100 100" fill="none"><path d="M25 65c-8.3 0-15-6.7-15-15 0-7.5 5.5-13.7 12.7-14.8C24.5 25.5 33.5 18 44 18c10.2 0 18.9 6.9 21.5 16.3C67.2 34.1 69 34 71 34c11 0 20 9 20 20s-9 20-20 20H25z" fill="#94A1B2"/></svg>`,
+            rain: `<svg viewBox="0 0 100 100" fill="none"><path d="M25 55c-8.3 0-15-6.7-15-15 0-7.5 5.5-13.7 12.7-14.8C24.5 15.5 33.5 8 44 8c10.2 0 18.9 6.9 21.5 16.3C67.2 24.1 69 24 71 24c11 0 20 9 20 20s-9 20-20 20H25z" fill="#94A1B2"/><g stroke="#7F9CF5" stroke-width="3" stroke-linecap="round"><line x1="30" y1="65" x2="25" y2="80"/><line x1="50" y1="65" x2="45" y2="80"/><line x1="70" y1="65" x2="65" y2="80"/></g></svg>`,
+            snow: `<svg viewBox="0 0 100 100" fill="none"><path d="M25 55c-8.3 0-15-6.7-15-15 0-7.5 5.5-13.7 12.7-14.8C24.5 15.5 33.5 8 44 8c10.2 0 18.9 6.9 21.5 16.3C67.2 24.1 69 24 71 24c11 0 20 9 20 20s-9 20-20 20H25z" fill="#94A1B2"/><g fill="#E5E7EB"><circle cx="30" cy="70" r="3"/><circle cx="50" cy="75" r="3"/><circle cx="70" cy="70" r="3"/></g></svg>`
+        };
+
+        function getFallbackIcon(symbolCode) {
+            if (symbolCode.includes('snow')) return fallbackIcons.snow;
+            if (symbolCode.includes('rain') || symbolCode.includes('sleet')) return fallbackIcons.rain;
+            if (symbolCode.includes('cloud') || symbolCode.includes('fog') || symbolCode.includes('partlycloudy')) return fallbackIcons.cloud;
+            return fallbackIcons.sun;
+        }
+
+        function createWeatherIcon(symbolCode, size = 48) {
+            const iconId = 'icon-' + Math.random().toString(36).substr(2, 9);
+            return `
+                <div style="width: ${size}px; height: ${size}px;">
+                    <img id="${iconId}" src="${getWeatherIconUrl(symbolCode)}" alt="${getWeatherDescription(symbolCode)}" 
+                         style="width: 100%; height: 100%;" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; width: 100%; height: 100%;">${getFallbackIcon(symbolCode)}</div>
+                </div>
+            `;
+        }
+
+        async function fetchWeather() {
+            try {
+                const response = await fetch(MET_API_URL, {
+                    headers: { 'User-Agent': 'SmartHub-WH56/1.0' }
+                });
+                if (!response.ok) throw new Error('Failed to fetch');
+                return await response.json();
+            } catch (error) {
+                console.error('Error:', error);
+                return null;
+            }
+        }
+
+        function renderWeatherDetail(data) {
+            const container = document.getElementById('weather-detail');
+            
+            if (!data || !data.properties || !data.properties.timeseries) {
+                container.innerHTML = '<div class="empty-state">Kunne ikke laste værdata</div>';
+                return;
+            }
+
+            const timeseries = data.properties.timeseries;
+            
+            // Group by day
+            const dayForecasts = {};
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            for (const entry of timeseries) {
+                const entryDate = new Date(entry.time);
+                const dateKey = entryDate.toISOString().split('T')[0];
+                
+                if (!dayForecasts[dateKey]) {
+                    dayForecasts[dateKey] = {
+                        date: entryDate,
+                        entries: []
+                    };
+                }
+                dayForecasts[dateKey].entries.push(entry);
+            }
+
+            // Get next 7 days
+            const days = Object.values(dayForecasts).slice(0, 7);
+
+            let html = '<div class="detail-grid detail-grid-4" style="grid-template-columns: repeat(7, 1fr);">';
+
+            for (const day of days) {
+                const isToday = day.date.toDateString() === today.toDateString();
+                const dayName = isToday ? 'I dag' : dayNames[day.date.getDay()];
+                const dateStr = day.date.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+
+                // Find midday entry for representative weather
+                const middayEntry = day.entries.find(e => {
+                    const hour = new Date(e.time).getHours();
+                    return hour >= 11 && hour <= 14;
+                }) || day.entries[Math.floor(day.entries.length / 2)];
+
+                // Find min/max temps
+                let minTemp = Infinity, maxTemp = -Infinity;
+                for (const e of day.entries) {
+                    const temp = e.data.instant.details.air_temperature;
+                    if (temp < minTemp) minTemp = temp;
+                    if (temp > maxTemp) maxTemp = temp;
+                }
+
+                const symbol = middayEntry.data.next_6_hours?.summary?.symbol_code || 
+                               middayEntry.data.next_1_hours?.summary?.symbol_code || 
+                               'cloudy';
+                const wind = middayEntry.data.instant.details.wind_speed;
+                const precip = middayEntry.data.next_6_hours?.details?.precipitation_amount || 0;
+
+                html += `
+                    <div class="weather-day">
+                        <div class="weather-day-name">${dayName}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">${dateStr}</div>
+                        ${createWeatherIcon(symbol, 48)}
+                        <div class="weather-day-temp">${Math.round(maxTemp)}°</div>
+                        <div class="weather-day-temp-low">${Math.round(minTemp)}°</div>
+                        <div class="weather-day-details">
+                            ${wind} m/s<br>
+                            ${precip > 0 ? precip + ' mm' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            // Add hourly forecast for today
+            const todayKey = today.toISOString().split('T')[0];
+            if (dayForecasts[todayKey]) {
+                html += `
+                    <div class="detail-card" style="margin-top: 1.5rem;">
+                        <div class="detail-card-title">Time for time</div>
+                        <div class="detail-grid" style="grid-template-columns: repeat(8, 1fr);">
+                `;
+
+                const hourlyEntries = dayForecasts[todayKey].entries.slice(0, 8);
+                for (const entry of hourlyEntries) {
+                    const time = new Date(entry.time);
+                    const hour = time.getHours();
+                    const temp = entry.data.instant.details.air_temperature;
+                    const symbol = entry.data.next_1_hours?.summary?.symbol_code || 
+                                   entry.data.next_6_hours?.summary?.symbol_code || 
+                                   'cloudy';
+
+                    html += `
+                        <div class="weather-day" style="padding: 0.75rem;">
+                            <div class="weather-day-name">${String(hour).padStart(2, '0')}:00</div>
+                            ${createWeatherIcon(symbol, 36)}
+                            <div class="weather-day-temp" style="font-size: 1rem;">${Math.round(temp)}°</div>
+                        </div>
+                    `;
+                }
+
+                html += '</div></div>';
+            }
+
+            // Add Yr meteogram with cache-busting timestamp
+            const meteogramTimestamp = Math.floor(Date.now() / 60000); // Changes every minute
+            html += `
+                <div class="detail-card" style="margin-top: 1.5rem;">
+                    <div class="detail-card-title">Yr Meteogram</div>
+                    <div style="text-align: center; padding: 0.5rem;">
+                        <img id="yr-meteogram" 
+                             src="https://www.yr.no/en/content/1-2318773/meteogram.svg?mode=dark&_=${meteogramTimestamp}" 
+                             alt="Yr Meteogram" 
+                             style="max-width: 100%; height: auto; border-radius: 8px;"
+                             onerror="this.parentElement.innerHTML='<div style=\\'color: var(--text-muted);\\'>Kunne ikke laste meteogram</div>'">
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Fetch and render
+        fetchWeather().then(data => {
+            if (data) renderWeatherDetail(data);
+        });
+
+        // Refresh meteogram every 10 minutes
+        setInterval(() => {
+            const meteogram = document.getElementById('yr-meteogram');
+            if (meteogram) {
+                const newTimestamp = Math.floor(Date.now() / 60000);
+                meteogram.src = `https://www.yr.no/en/content/1-2318773/meteogram.svg?mode=dark&_=${newTimestamp}`;
+            }
+        }, 10 * 60 * 1000);
+    </script>
+</body>
+</html>

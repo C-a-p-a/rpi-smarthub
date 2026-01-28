@@ -18,43 +18,64 @@
 
         <main class="main">
             <div class="left-column">
-                <section class="widget widget-weather">
-                    <h2 class="widget-title">Været</h2>
-                    <div class="widget-subtitle">Møhlenpris, Bergen</div>
-                    <div id="weather" class="weather-content">
-                        <div class="weather-loading">Laster vær...</div>
-                    </div>
-                </section>
+                <a href="weather.html" class="widget-link">
+                    <section class="widget widget-weather clickable">
+                        <h2 class="widget-title">Været</h2>
+                        <div class="widget-subtitle">Møhlenpris, Bergen</div>
+                        <div id="weather" class="weather-content">
+                            <div class="weather-loading">Laster vær...</div>
+                        </div>
+                    </section>
+                </a>
 
-                <section class="widget widget-football">
-                    <div class="football-header">
-                        <h2 class="widget-title" id="football-title">Fotball</h2>
-                        <div class="widget-subtitle" id="fpl-deadline"></div>
-                    </div>
-                    <div id="football-fixtures" class="football-fixtures"></div>
-                </section>
+                <a href="football.html" class="widget-link">
+                    <section class="widget widget-football clickable">
+                        <div class="football-header">
+                            <h2 class="widget-title" id="football-title">Fotball</h2>
+                            <div class="widget-subtitle" id="fpl-deadline"></div>
+                        </div>
+                        <div id="football-fixtures" class="football-fixtures"></div>
+                    </section>
+                </a>
             </div>
 
-            <section class="widget widget-departures">
-                <h2 class="widget-title">Bussavganger</h2>
-                <div class="widget-subtitle">Møhlenpris → Sentrum</div>
-                <div id="departures" class="departures-list"></div>
-            </section>
+            <div class="right-column">
+                <a href="bus.html" class="widget-link">
+                    <section class="widget widget-departures clickable">
+                        <h2 class="widget-title">Bussavganger</h2>
+                        <div class="widget-subtitle">Møhlenpris → Sentrum</div>
+                        <div id="departures" class="departures-list"></div>
+                    </section>
+                </a>
+
+                <a href="calendar.html" class="widget-link">
+                    <section class="widget widget-calendar clickable">
+                        <h2 class="widget-title">Kalender</h2>
+                        <div id="calendar-events" class="calendar-content">
+                            <div class="calendar-loading">Laster kalender...</div>
+                        </div>
+                    </section>
+                </a>
+            </div>
         </main>
 
         <footer class="footer-tickers">
-            <div class="ticker ticker-news">
-                <div class="ticker-label news-label">NRK</div>
-                <div class="ticker-content">
-                    <div id="news-headline" class="news-headline">Laster nyheter...</div>
+            <a href="news.html" class="ticker-link">
+                <div class="ticker ticker-news clickable">
+                    <div class="ticker-label news-label">NRK</div>
+                    <div class="ticker-content">
+                        <div id="news-headline" class="news-headline">Laster nyheter...</div>
+                    </div>
                 </div>
-            </div>
-            <div class="ticker ticker-stocks">
-                <div class="ticker-label stocks-label">NASDAQ</div>
-                <div class="ticker-content">
-                    <div id="stocks-display" class="stocks-display">Laster aksjer...</div>
+            </a>
+            <a href="stocks.html" class="ticker-link">
+                <div class="ticker ticker-stocks clickable">
+                    <div class="ticker-label stocks-label">NASDAQ</div>
+                    <div class="ticker-content">
+                        <div id="stocks-display" class="stocks-display">Laster aksjer...</div>
+                    </div>
                 </div>
-            </div>
+            </a>
         </footer>
     </div>
 
@@ -64,5 +85,6 @@
     <script src="news.js"></script>
     <script src="stocks.js"></script>
     <script src="football.js"></script>
+    <script src="calendar.js"></script>
 </body>
 </html>

@@ -11,12 +11,32 @@ NRK_RSS_URL = "https://www.nrk.no/toppsaker.rss"
 # Stock symbols to track
 # premarket: True = show pre-market/after-hours price when available
 # is_index: True = don't show price, only percentage
+# category: for grouping on detail page
 STOCK_SYMBOLS = [
-    {"symbol": "^IXIC", "name": "NASDAQ", "premarket": False, "is_index": True},
-    {"symbol": "ONDS", "name": "ONDS", "premarket": True, "is_index": False},
-    {"symbol": "IREN", "name": "IREN", "premarket": True, "is_index": False},
-    {"symbol": "OSS", "name": "OSS", "premarket": True, "is_index": False},
-    {"symbol": "PNG.V", "name": "PNG", "premarket": False, "is_index": False},  # TSX Venture (Canada)
+    # Indices
+    {"symbol": "^IXIC", "name": "NASDAQ", "premarket": False, "is_index": True, "category": "index"},
+    {"symbol": "^GSPC", "name": "S&P 500", "premarket": False, "is_index": True, "category": "index"},
+    # My stocks
+    {"symbol": "ONDS", "name": "ONDS", "premarket": True, "is_index": False, "category": "mine"},
+    {"symbol": "IREN", "name": "IREN", "premarket": True, "is_index": False, "category": "mine"},
+    {"symbol": "OSS", "name": "OSS", "premarket": True, "is_index": False, "category": "mine"},
+    {"symbol": "PNG.V", "name": "PNG", "premarket": False, "is_index": False, "category": "mine"},
+    # Magnificent 7
+    {"symbol": "AAPL", "name": "Apple", "premarket": True, "is_index": False, "category": "mag7"},
+    {"symbol": "MSFT", "name": "Microsoft", "premarket": True, "is_index": False, "category": "mag7"},
+    {"symbol": "GOOGL", "name": "Google", "premarket": True, "is_index": False, "category": "mag7"},
+    {"symbol": "AMZN", "name": "Amazon", "premarket": True, "is_index": False, "category": "mag7"},
+    {"symbol": "NVDA", "name": "Nvidia", "premarket": True, "is_index": False, "category": "mag7"},
+    {"symbol": "META", "name": "Meta", "premarket": True, "is_index": False, "category": "mag7"},
+    {"symbol": "TSLA", "name": "Tesla", "premarket": True, "is_index": False, "category": "mag7"},
+    # ETFs / Funds
+    {"symbol": "SPY", "name": "S&P 500 ETF", "premarket": True, "is_index": False, "category": "fund"},
+    {"symbol": "QQQ", "name": "Nasdaq 100 ETF", "premarket": True, "is_index": False, "category": "fund"},
+    {"symbol": "VOO", "name": "Vanguard S&P 500", "premarket": True, "is_index": False, "category": "fund"},
+    {"symbol": "VTI", "name": "Vanguard Total", "premarket": True, "is_index": False, "category": "fund"},
+    {"symbol": "NLR", "name": "Uranium & Nuclear", "premarket": True, "is_index": False, "category": "fund"},
+    {"symbol": "DFNS", "name": "VanEck Defense", "premarket": True, "is_index": False, "category": "fund"},
+    {"symbol": "UFO", "name": "VanEck Space", "premarket": True, "is_index": False, "category": "fund"},
 ]
 
 STOP_ID = "NSR:StopPlace:30918"  # Møhlenpris
@@ -125,7 +145,8 @@ def stocks():
                     "change": round(change_pct, 2),
                     "currency": meta.get("currency", "USD"),
                     "is_index": is_index,
-                    "session": session_type
+                    "session": session_type,
+                    "category": stock.get("category", "other")
                 })
         except Exception as e:
             print(f"Error fetching {symbol}: {e}")
@@ -133,138 +154,209 @@ def stocks():
     return jsonify(results)
 
 
+# SportDB Flashscore API
+SPORTDB_API_KEY = "L52UCRmPkCwYi9ONoTtRrcjN7gD9Kw3KjAHmnFRk"
+SPORTDB_BASE_URL = "https://api.sportdb.dev/api/flashscore"
+
+# League endpoints
+LEAGUES = {
+    "PL": "/football/england:198/premier-league:dYlOSQOD",
+    "CL": "/football/europe:6/champions-league:xGrwqq16"
+}
+
+
 @app.route('/football')
 def football():
-    """Fetch football data - PL and CL matches TODAY only"""
+    """Fetch football data - PL and CL matches TODAY only using SportDB API"""
     from datetime import datetime, timezone
     
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {"X-API-Key": SPORTDB_API_KEY}
     now = datetime.now(timezone.utc)
     today = now.date()
+    today_str = today.isoformat()
     
-    all_fixtures = []
-    deadline_info = None
+    # Use dict with event_id as key to avoid duplicates
+    matches_dict = {}
     
-    # === PREMIER LEAGUE (from FPL API) ===
-    try:
-        # Get bootstrap for deadline and teams
-        bootstrap_url = "https://fantasy.premierleague.com/api/bootstrap-static/"
-        r = requests.get(bootstrap_url, headers=headers, timeout=10)
-        
-        if r.status_code == 200:
-            data = r.json()
-            teams = {t["id"]: t["short_name"] for t in data.get("teams", [])}
+    # Determine current season (July starts new season)
+    if now.month >= 7:
+        season = f"{now.year}-{now.year + 1}"
+    else:
+        season = f"{now.year - 1}-{now.year}"
+    
+    for comp, league_path in LEAGUES.items():
+        try:
+            # Get scheduled fixtures for today
+            fixtures_url = f"{SPORTDB_BASE_URL}{league_path}/{season}/fixtures?page=1"
+            r = requests.get(fixtures_url, headers=headers, timeout=10)
             
-            # Check FPL deadline
-            for event in data.get("events", []):
-                if event.get("is_next") and event.get("deadline_time"):
-                    deadline_dt = datetime.fromisoformat(event["deadline_time"].replace("Z", "+00:00"))
-                    if deadline_dt.date() == today:
-                        deadline_info = {
-                            "time": event["deadline_time"],
-                            "name": f"GW{event.get('id')}"
-                        }
-                    break
+            if r.status_code == 200 and r.text and r.text != "null":
+                fixtures = r.json()
+                if fixtures:
+                    for match in fixtures:
+                        match_date = match.get("startDateTimeUtc", "")
+                        if match_date and match_date.startswith(today_str):
+                            event_id = match.get("eventId")
+                            status = match.get("eventStage", "SCHEDULED")
+                            matches_dict[event_id] = {
+                                "competition": comp,
+                                "home": match.get("home3CharName", "???"),
+                                "away": match.get("away3CharName", "???"),
+                                "home_score": int(match.get("homeScore", 0)) if match.get("homeScore") else None,
+                                "away_score": int(match.get("awayScore", 0)) if match.get("awayScore") else None,
+                                "kickoff": match_date,
+                                "started": status in ["LIVE", "FINISHED", "1ST_HALF", "2ND_HALF", "HALFTIME"],
+                                "finished": status == "FINISHED",
+                                "minute": match.get("gameTime") if match.get("gameTime") and match.get("gameTime") != "-1" else None
+                            }
             
-            # Get PL fixtures
-            fixtures_url = "https://fantasy.premierleague.com/api/fixtures/"
-            r2 = requests.get(fixtures_url, headers=headers, timeout=10)
-            if r2.status_code == 200:
-                for fix in r2.json():
-                    if fix.get("kickoff_time"):
-                        kickoff = datetime.fromisoformat(fix["kickoff_time"].replace("Z", "+00:00"))
-                        if kickoff.date() == today:
-                            all_fixtures.append({
-                                "competition": "PL",
-                                "home": teams.get(fix["team_h"], "???"),
-                                "away": teams.get(fix["team_a"], "???"),
-                                "home_score": fix.get("team_h_score"),
-                                "away_score": fix.get("team_a_score"),
-                                "kickoff": fix["kickoff_time"],
-                                "started": fix.get("started", False),
-                                "finished": fix.get("finished", False)
-                            })
-    except Exception as e:
-        print(f"Error fetching PL data: {e}")
-    
-    # === CHAMPIONS LEAGUE (from FotMob API) ===
-    try:
-        # FotMob API - get all matches for today
-        date_str = today.strftime("%Y%m%d")
-        fotmob_url = f"https://www.fotmob.com/api/matches?date={date_str}"
-        
-        r = requests.get(fotmob_url, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Referer": "https://www.fotmob.com/",
-            "Origin": "https://www.fotmob.com"
-        }, timeout=10)
-        print(f"FotMob response: {r.status_code}")
-        
-        if r.status_code == 200:
-            data = r.json()
-            leagues = data.get("leagues", [])
+            # Check results for today (finished matches)
+            results_url = f"{SPORTDB_BASE_URL}{league_path}/{season}/results?page=1"
+            r = requests.get(results_url, headers=headers, timeout=10)
             
-            # Find Champions League (league ID 42)
-            for league in leagues:
-                league_id = league.get("id")
-                league_name = league.get("name", "")
-                
-                # 42 = Champions League, 47 = Premier League (backup if FPL fails)
-                if league_id == 42:  # Champions League
-                    print(f"Found CL with {len(league.get('matches', []))} matches")
-                    
-                    for match in league.get("matches", []):
-                        home_team = match.get("home", {})
-                        away_team = match.get("away", {})
-                        status = match.get("status", {})
-                        
-                        # Build kickoff time
-                        utc_time = status.get("utcTime", "")
-                        if utc_time:
-                            kickoff_str = utc_time
-                        else:
-                            kickoff_str = f"{today.isoformat()}T21:00:00Z"
-                        
-                        # Get short names (3 letters)
-                        home_name = home_team.get("shortName", home_team.get("name", "???"))[:3].upper()
-                        away_name = away_team.get("shortName", away_team.get("name", "???"))[:3].upper()
-                        
-                        # Scores
-                        home_score = home_team.get("score")
-                        away_score = away_team.get("score")
-                        
-                        # Status
-                        is_finished = status.get("finished", False)
-                        is_started = status.get("started", False)
-                        
-                        all_fixtures.append({
-                            "competition": "CL",
-                            "home": home_name,
-                            "away": away_name,
-                            "home_score": home_score,
-                            "away_score": away_score,
-                            "kickoff": kickoff_str,
-                            "started": is_started,
-                            "finished": is_finished
-                        })
-                        print(f"Added CL: {home_name} vs {away_name}")
-    except Exception as e:
-        print(f"Error fetching CL data: {e}")
+            if r.status_code == 200 and r.text and r.text != "null":
+                results = r.json()
+                if results:
+                    for match in results:
+                        match_date = match.get("startDateTimeUtc", "")
+                        if match_date and match_date.startswith(today_str):
+                            event_id = match.get("eventId")
+                            # Only add if not already in fixtures, or update with final score
+                            matches_dict[event_id] = {
+                                "competition": comp,
+                                "home": match.get("home3CharName", "???"),
+                                "away": match.get("away3CharName", "???"),
+                                "home_score": int(match.get("homeScore", 0)) if match.get("homeScore") else 0,
+                                "away_score": int(match.get("awayScore", 0)) if match.get("awayScore") else 0,
+                                "kickoff": match_date,
+                                "started": True,
+                                "finished": True,
+                                "minute": None
+                            }
+                                
+        except Exception as e:
+            print(f"Error fetching {comp} data: {e}")
     
-    # Sort by kickoff time
-    all_fixtures.sort(key=lambda x: x["kickoff"])
+    # Convert to list and sort by kickoff time
+    all_fixtures = list(matches_dict.values())
+    all_fixtures.sort(key=lambda x: x.get("kickoff", ""))
     
-    # Show widget if there are matches today OR FPL deadline today
-    show_widget = len(all_fixtures) > 0 or deadline_info is not None
+    # Only show widget if there are matches today
+    show_widget = len(all_fixtures) > 0
     
-    print(f"Football API: {len(all_fixtures)} fixtures, show={show_widget}")
+    print(f"Football API: {len(all_fixtures)} fixtures today, show={show_widget}")
     
     return jsonify({
         "show": show_widget,
-        "deadline": deadline_info,
+        "deadline": None,
         "fixtures": all_fixtures
+    })
+
+
+# Calendar ICS feeds
+CALENDAR_FEEDS = [
+    "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMtcFQpwEsezKo9y4SkmQp_l",
+    "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMtvHWx7DRNJ15tejm_iPCzU",
+    "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMv0FJ4ZvTrNIcFqEfKTAu7jcVPba4ym4b23Ho-YqY0cpttPb4rFlpvh85wMhOn9ZjM",
+    "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMtaZRHwsuiEFJPF0vvRCsmbYOk65qb1HVmxCjJFBGYXB0HRfSslzam-C7313TcaiXo",
+    "https://calendars.icloud.com/holidays/no_no.ics",
+]
+
+
+@app.route('/calendar')
+def calendar():
+    """Fetch calendar events from multiple ICS feeds"""
+    from datetime import datetime, timezone, timedelta
+    from icalendar import Calendar
+    from dateutil import rrule
+    from dateutil.tz import gettz, UTC
+    
+    now = datetime.now(timezone.utc)
+    today = now.date()
+    tomorrow = today + timedelta(days=1)
+    
+    all_events = []
+    local_tz = gettz("Europe/Oslo")
+    
+    for feed_url in CALENDAR_FEEDS:
+        try:
+            r = requests.get(feed_url, timeout=10)
+            if r.status_code != 200:
+                continue
+                
+            cal = Calendar.from_ical(r.content)
+            
+            for component in cal.walk():
+                if component.name != "VEVENT":
+                    continue
+                
+                summary = str(component.get('summary', 'Ingen tittel'))
+                dtstart = component.get('dtstart')
+                dtend = component.get('dtend')
+                
+                if not dtstart:
+                    continue
+                
+                start = dtstart.dt
+                
+                # Handle all-day events (date without time)
+                is_all_day = not isinstance(start, datetime)
+                
+                if is_all_day:
+                    # All-day event
+                    if start == today or start == tomorrow:
+                        all_events.append({
+                            "summary": summary,
+                            "start": start.isoformat(),
+                            "end": dtend.dt.isoformat() if dtend else None,
+                            "all_day": True,
+                            "is_today": start == today,
+                            "is_tomorrow": start == tomorrow
+                        })
+                else:
+                    # Timed event - convert to local timezone
+                    if start.tzinfo is None:
+                        start = start.replace(tzinfo=UTC)
+                    
+                    start_local = start.astimezone(local_tz)
+                    event_date = start_local.date()
+                    
+                    if event_date == today or event_date == tomorrow:
+                        end_str = None
+                        if dtend:
+                            end = dtend.dt
+                            if end.tzinfo is None:
+                                end = end.replace(tzinfo=UTC)
+                            end_local = end.astimezone(local_tz)
+                            end_str = end_local.strftime("%H:%M")
+                        
+                        all_events.append({
+                            "summary": summary,
+                            "start": start_local.isoformat(),
+                            "time": start_local.strftime("%H:%M"),
+                            "end_time": end_str,
+                            "all_day": False,
+                            "is_today": event_date == today,
+                            "is_tomorrow": event_date == tomorrow
+                        })
+                        
+        except Exception as e:
+            print(f"Error fetching calendar {feed_url}: {e}")
+    
+    # Sort events: today first, then by time
+    all_events.sort(key=lambda x: (
+        not x.get("is_today"),  # Today first
+        x.get("all_day"),  # Timed events before all-day
+        x.get("time", "99:99") if not x.get("all_day") else "00:00"
+    ))
+    
+    # Split into today and tomorrow
+    today_events = [e for e in all_events if e.get("is_today")]
+    tomorrow_events = [e for e in all_events if e.get("is_tomorrow")]
+    
+    return jsonify({
+        "today": today_events,
+        "tomorrow": tomorrow_events
     })
 
 

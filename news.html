@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=720, initial-scale=1.0, user-scalable=no">
+    <title>Nyheter - Smarthub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="detail-style.css">
+</head>
+<body>
+    <div class="detail-page">
+        <header class="detail-header">
+            <div class="detail-header-left">
+                <a href="/" class="back-button">←</a>
+                <div>
+                    <h1 class="detail-title">Nyheter</h1>
+                    <div class="detail-subtitle">NRK Toppsaker</div>
+                </div>
+            </div>
+            <div class="detail-header-center">
+                <div id="detail-clock" class="detail-clock">--:--:--</div>
+                <div id="detail-date" class="detail-date">Laster dato...</div>
+            </div>
+            <div class="detail-header-right">
+                <div class="countdown-display">
+                    <span>Tilbake om</span>
+                    <span id="countdown">3:00</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="detail-content">
+            <div id="news-content" class="loading">Laster nyheter...</div>
+        </div>
+    </div>
+
+    <script src="detail-page.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/news';
+
+        async function fetchNews() {
+            try {
+                const response = await fetch(API_URL);
+                const text = await response.text();
+                
+                // Parse RSS XML
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(text, 'application/xml');
+                
+                const items = xml.querySelectorAll('item');
+                renderNews(items);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('news-content').innerHTML = 
+                    '<div class="empty-state">Kunne ikke laste nyheter</div>';
+            }
+        }
+
+        function renderNews(items) {
+            const container = document.getElementById('news-content');
+
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ingen nyheter tilgjengelig</div>';
+                return;
+            }
+
+            let html = '<div class="detail-grid detail-grid-2">';
+
+            let count = 0;
+            for (const item of items) {
+                if (count >= 12) break;
+
+                const title = item.querySelector('title')?.textContent || 'Ingen tittel';
+                const description = item.querySelector('description')?.textContent || '';
+                const pubDate = item.querySelector('pubDate')?.textContent || '';
+                const link = item.querySelector('link')?.textContent || '#';
+
+                // Format date
+                let timeAgo = '';
+                if (pubDate) {
+                    const date = new Date(pubDate);
+                    const now = new Date();
+                    const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
+                    
+                    if (diffHours < 1) {
+                        timeAgo = 'Nå';
+                    } else if (diffHours < 24) {
+                        timeAgo = `${diffHours}t siden`;
+                    } else {
+                        timeAgo = date.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+                    }
+                }
+
+                // Clean description (remove HTML tags)
+                const cleanDesc = description.replace(/<[^>]*>/g, '').substring(0, 150);
+
+                html += `
+                    <div class="news-item">
+                        <div class="news-item-title">${title}</div>
+                        <div class="news-item-summary">${cleanDesc}${cleanDesc.length >= 150 ? '...' : ''}</div>
+                        <div class="news-item-time">${timeAgo}</div>
+                    </div>
+                `;
+
+                count++;
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Fetch and render
+        fetchNews();
+    </script>
+</body>
+</html>

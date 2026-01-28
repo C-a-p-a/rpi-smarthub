@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=720, initial-scale=1.0, user-scalable=no">
+    <title>Bussavganger - Smarthub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="detail-style.css">
+</head>
+<body>
+    <div class="detail-page">
+        <header class="detail-header">
+            <div class="detail-header-left">
+                <a href="/" class="back-button">←</a>
+                <div>
+                    <h1 class="detail-title">Bussavganger</h1>
+                    <div class="detail-subtitle">Møhlenpris</div>
+                </div>
+            </div>
+            <div class="detail-header-center">
+                <div id="detail-clock" class="detail-clock">--:--:--</div>
+                <div id="detail-date" class="detail-date">Laster dato...</div>
+            </div>
+            <div class="detail-header-right">
+                <div class="countdown-display">
+                    <span>Tilbake om</span>
+                    <span id="countdown">3:00</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="detail-content">
+            <div class="detail-grid detail-grid-2">
+                <div class="detail-card">
+                    <div class="detail-card-title">→ Mot Sentrum (nordgående)</div>
+                    <div id="northbound" class="bus-direction">
+                        <div class="loading">Laster avganger...</div>
+                    </div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-card-title">← Fra Sentrum (sørgående)</div>
+                    <div id="southbound" class="bus-direction">
+                        <div class="loading">Laster avganger...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="detail-page.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/departures';
+
+        // Sørgående destinasjoner
+        const SOUTHBOUND_DESTINATIONS = [
+            'vadmyra', 'fyllingsdalen', 'løvstakk', 'hesjaholtet', 'skogsskiftet',
+            'sletten', 'fana', 'nesttun', 'birkelund', 'støbotn', 'laksevåg',
+            'loddefjord', 'storavatnet', 'mathopen', 'alvøen', 'bønes', 'olsvik',
+            'søndre skogveien', 'ravnanger terminal', 'barliveien', 'ågotnes terminal',
+            'lyngbø', 'wergeland', 'straume terminal', 'anglevik', 'birkelandsskiftet',
+            'hjelteryggen'
+        ];
+
+        function isNorthbound(destination) {
+            const dest = destination.toLowerCase();
+            return !SOUTHBOUND_DESTINATIONS.some(south => dest.includes(south));
+        }
+
+        function getMinutesUntil(isoString) {
+            const now = new Date();
+            const departure = new Date(isoString);
+            return Math.round((departure - now) / 60000);
+        }
+
+        function formatMinutes(min) {
+            if (min <= 0) return 'nå';
+            if (min === 1) return '1 min';
+            return `${min} min`;
+        }
+
+        async function fetchDepartures() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                if (data.error || !data.data?.stopPlace?.estimatedCalls) {
+                    document.getElementById('northbound').innerHTML = '<div class="empty-state">Feil ved henting</div>';
+                    document.getElementById('southbound').innerHTML = '<div class="empty-state">Feil ved henting</div>';
+                    return;
+                }
+
+                const departures = data.data.stopPlace.estimatedCalls;
+                const northbound = [];
+                const southbound = [];
+
+                for (const dep of departures) {
+                    const dest = dep.destinationDisplay?.frontText || '';
+                    const line = dep.serviceJourney?.line?.publicCode || '?';
+                    const time = dep.expectedDepartureTime || dep.aimedDepartureTime;
+                    const minutesUntil = getMinutesUntil(time);
+
+                    if (minutesUntil <= 0) continue;
+
+                    const entry = { line, dest, time, minutesUntil };
+
+                    if (isNorthbound(dest)) {
+                        if (northbound.length < 15) northbound.push(entry);
+                    } else {
+                        if (southbound.length < 15) southbound.push(entry);
+                    }
+                }
+
+                renderDepartures('northbound', northbound);
+                renderDepartures('southbound', southbound);
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('northbound').innerHTML = '<div class="empty-state">Kunne ikke laste avganger</div>';
+                document.getElementById('southbound').innerHTML = '<div class="empty-state">Kunne ikke laste avganger</div>';
+            }
+        }
+
+        function renderDepartures(containerId, departures) {
+            const container = document.getElementById(containerId);
+
+            if (departures.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ingen avganger</div>';
+                return;
+            }
+
+            let html = '';
+            for (const dep of departures) {
+                const timeClass = dep.minutesUntil <= 5 ? 'soon' : '';
+                html += `
+                    <div class="bus-item">
+                        <div class="bus-line">${dep.line}</div>
+                        <div class="bus-dest">${dep.dest}</div>
+                        <div class="bus-time ${timeClass}">${formatMinutes(dep.minutesUntil)}</div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Initial fetch
+        fetchDepartures();
+
+        // Update every 30 seconds
+        setInterval(fetchDepartures, 30000);
+    </script>
+</body>
+</html>

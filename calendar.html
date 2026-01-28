@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=720, initial-scale=1.0, user-scalable=no">
+    <title>Kalender - Smarthub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="detail-style.css">
+</head>
+<body>
+    <div class="detail-page">
+        <header class="detail-header">
+            <div class="detail-header-left">
+                <a href="/" class="back-button">←</a>
+                <div>
+                    <h1 class="detail-title">Kalender</h1>
+                    <div class="detail-subtitle">Denne uken</div>
+                </div>
+            </div>
+            <div class="detail-header-center">
+                <div id="detail-clock" class="detail-clock">--:--:--</div>
+                <div id="detail-date" class="detail-date">Laster dato...</div>
+            </div>
+            <div class="detail-header-right">
+                <div class="countdown-display">
+                    <span>Tilbake om</span>
+                    <span id="countdown">3:00</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="detail-content">
+            <div id="calendar-content" class="loading">Laster kalender...</div>
+        </div>
+    </div>
+
+    <script src="detail-page.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/calendar';
+        const dayNames = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+
+        async function fetchCalendar() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                renderCalendar(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('calendar-content').innerHTML = 
+                    '<div class="empty-state">Kunne ikke laste kalender</div>';
+            }
+        }
+
+        function renderCalendar(data) {
+            const container = document.getElementById('calendar-content');
+
+            const todayEvents = data.today || [];
+            const tomorrowEvents = data.tomorrow || [];
+
+            if (todayEvents.length === 0 && tomorrowEvents.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ingen hendelser de neste dagene</div>';
+                return;
+            }
+
+            let html = '<div class="detail-grid detail-grid-2">';
+
+            // Today
+            const today = new Date();
+            html += `
+                <div class="detail-card">
+                    <div class="detail-card-title">
+                        I dag - ${dayNames[today.getDay()]} ${today.getDate()}. ${today.toLocaleDateString('no-NO', { month: 'long' })}
+                    </div>
+            `;
+
+            if (todayEvents.length === 0) {
+                html += '<div class="empty-state" style="padding: 1rem;">Ingen hendelser i dag</div>';
+            } else {
+                for (const event of todayEvents) {
+                    html += renderEvent(event);
+                }
+            }
+            html += '</div>';
+
+            // Tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            html += `
+                <div class="detail-card">
+                    <div class="detail-card-title">
+                        I morgen - ${dayNames[tomorrow.getDay()]} ${tomorrow.getDate()}. ${tomorrow.toLocaleDateString('no-NO', { month: 'long' })}
+                    </div>
+            `;
+
+            if (tomorrowEvents.length === 0) {
+                html += '<div class="empty-state" style="padding: 1rem;">Ingen hendelser i morgen</div>';
+            } else {
+                for (const event of tomorrowEvents) {
+                    html += renderEvent(event);
+                }
+            }
+            html += '</div>';
+
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        function renderEvent(event) {
+            let timeDisplay = 'Hele dagen';
+            if (!event.all_day && event.time) {
+                timeDisplay = event.time;
+                if (event.end_time) {
+                    timeDisplay += ` - ${event.end_time}`;
+                }
+            }
+
+            const allDayClass = event.all_day ? 'all-day' : '';
+
+            return `
+                <div class="calendar-event ${allDayClass}">
+                    <span class="calendar-event-time">${timeDisplay}</span>
+                    <span class="calendar-event-title">${event.summary}</span>
+                </div>
+            `;
+        }
+
+        // Fetch and render
+        fetchCalendar();
+    </script>
+</body>
+</html>

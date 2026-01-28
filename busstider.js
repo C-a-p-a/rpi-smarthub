@@ -28,7 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
         'wergeland',
         'straume terminal',
         'anglevik',
-        'birkelandsskiftet'
+        'birkelandsskiftet',
+        'hjelteryggen',
+        'steinrusten',
+        'brattholmen'
 
     ];
 

@@ -96,6 +96,32 @@ html, body {
     border-bottom: 1px solid var(--border);
 }
 
+/* === Clickable Widgets === */
+.widget-link,
+.ticker-link {
+    text-decoration: none;
+    color: inherit;
+    display: contents;
+}
+
+.widget.clickable,
+.ticker.clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.widget.clickable:hover,
+.ticker.clickable:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-soft);
+    transform: translateY(-2px);
+}
+
+.widget.clickable:active,
+.ticker.clickable:active {
+    transform: translateY(0);
+}
+
 /* === Main Grid Layout - 2 columns === */
 .main {
     display: grid;
@@ -105,6 +131,13 @@ html, body {
 }
 
 .left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 0;
+}
+
+.right-column {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -292,12 +325,16 @@ html, body {
     font-size: 1rem;
 }
 
+/* === Departures Widget (compact) === */
+.widget-departures {
+    align-self: start;
+}
+
 /* === Departures List === */
 .departures-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    flex: 1;
     overflow-y: auto;
     min-height: 0;
 }
@@ -678,4 +715,90 @@ html, body {
 @keyframes fadeIn {
     from { opacity: 0.7; }
     to { opacity: 1; }
+}
+
+/* === Calendar Widget === */
+.widget-calendar {
+    flex: 1;
+    min-height: 0;
+}
+
+.calendar-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.calendar-loading,
+.calendar-error,
+.calendar-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 1rem;
+    font-size: 0.85rem;
+}
+
+.calendar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.calendar-section-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+}
+
+.calendar-tomorrow {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.calendar-tomorrow .calendar-section-title {
+    color: var(--text-muted);
+}
+
+.calendar-event {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.calendar-event.all-day {
+    border-left: 3px solid var(--accent);
+}
+
+.event-time {
+    color: var(--text-secondary);
+    font-weight: 500;
+    min-width: 5rem;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.event-summary {
+    flex: 1;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-more {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 0.25rem;
 }

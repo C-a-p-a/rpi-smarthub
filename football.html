@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=720, initial-scale=1.0, user-scalable=no">
+    <title>Fotball - Smarthub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="detail-style.css">
+</head>
+<body>
+    <div class="detail-page">
+        <header class="detail-header">
+            <div class="detail-header-left">
+                <a href="/" class="back-button">←</a>
+                <div>
+                    <h1 class="detail-title">Fotball</h1>
+                    <div class="detail-subtitle">Premier League & Champions League</div>
+                </div>
+            </div>
+            <div class="detail-header-center">
+                <div id="detail-clock" class="detail-clock">--:--:--</div>
+                <div id="detail-date" class="detail-date">Laster dato...</div>
+            </div>
+            <div class="detail-header-right">
+                <div class="countdown-display">
+                    <span>Tilbake om</span>
+                    <span id="countdown">3:00</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="detail-content">
+            <div id="football-content" class="loading">Laster kamper...</div>
+        </div>
+    </div>
+
+    <script src="detail-page.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/football';
+
+        async function fetchFootball() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                renderFootball(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('football-content').innerHTML = 
+                    '<div class="empty-state">Kunne ikke laste kamper</div>';
+            }
+        }
+
+        function renderFootball(data) {
+            const container = document.getElementById('football-content');
+
+            if (!data.show || !data.fixtures || data.fixtures.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ingen kamper i dag</div>';
+                return;
+            }
+
+            // Group by competition
+            const plMatches = data.fixtures.filter(f => f.competition === 'PL');
+            const clMatches = data.fixtures.filter(f => f.competition === 'CL');
+
+            let html = '<div class="detail-grid detail-grid-2">';
+
+            // Premier League
+            html += `
+                <div class="detail-card">
+                    <div class="detail-card-title">
+                        <span class="match-competition pl" style="margin-right: 0.5rem;">PL</span>
+                        Premier League
+                    </div>
+            `;
+
+            if (plMatches.length === 0) {
+                html += '<div class="empty-state" style="padding: 1rem;">Ingen PL-kamper i dag</div>';
+            } else {
+                for (const match of plMatches) {
+                    html += renderMatch(match);
+                }
+            }
+            html += '</div>';
+
+            // Champions League
+            html += `
+                <div class="detail-card">
+                    <div class="detail-card-title">
+                        <span class="match-competition cl" style="margin-right: 0.5rem;">CL</span>
+                        Champions League
+                    </div>
+            `;
+
+            if (clMatches.length === 0) {
+                html += '<div class="empty-state" style="padding: 1rem;">Ingen CL-kamper i dag</div>';
+            } else {
+                for (const match of clMatches) {
+                    html += renderMatch(match);
+                }
+            }
+            html += '</div>';
+
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        function renderMatch(match) {
+            const kickoff = new Date(match.kickoff);
+            let statusClass = '';
+            let timeDisplay = '';
+
+            if (match.finished) {
+                statusClass = 'finished';
+                timeDisplay = 'FT';
+            } else if (match.started) {
+                statusClass = 'live';
+                timeDisplay = match.minute ? `${match.minute}'` : 'LIVE';
+            } else {
+                timeDisplay = kickoff.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            let scoreDisplay = 'vs';
+            if (match.started || match.finished) {
+                scoreDisplay = `${match.home_score ?? 0} - ${match.away_score ?? 0}`;
+            }
+
+            return `
+                <div class="match-item ${statusClass}">
+                    <div class="match-teams">
+                        <span class="match-team home">${match.home}</span>
+                        <span class="match-score">${scoreDisplay}</span>
+                        <span class="match-team away">${match.away}</span>
+                    </div>
+                    <span class="match-time">${timeDisplay}</span>
+                </div>
+            `;
+        }
+
+        // Fetch and render
+        fetchFootball();
+
+        // Update every 60 seconds
+        setInterval(fetchFootball, 60000);
+    </script>
+</body>
+</html>

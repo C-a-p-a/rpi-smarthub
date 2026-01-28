@@ -88,7 +88,12 @@ function renderFixtures(fixtures) {
             timeDisplay = 'FT';
         } else if (fixture.started) {
             statusClass = 'live';
-            timeDisplay = 'LIVE';
+            // Show minute if available, otherwise just LIVE
+            if (fixture.minute && fixture.minute !== '-1') {
+                timeDisplay = `${fixture.minute}'`;
+            } else {
+                timeDisplay = 'LIVE';
+            }
         } else {
             timeDisplay = kickoff.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
         }
