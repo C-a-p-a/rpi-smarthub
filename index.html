@@ -12,6 +12,10 @@
 <body>
     <div class="dashboard">
         <header class="header">
+            <div class="header-btns-left">
+                <a href="wifi.html" class="header-btn" title="WiFi QR-kode">📶</a>
+                <a href="shopping.html" class="header-btn" title="Handleliste">🛒</a>
+            </div>
             <div id="clock" class="clock">--:--:--</div>
             <div id="date" class="date">Laster dato...</div>
         </header>
@@ -28,15 +32,27 @@
                     </section>
                 </a>
 
-                <a href="football.html" class="widget-link">
-                    <section class="widget widget-football clickable">
-                        <div class="football-header">
-                            <h2 class="widget-title" id="football-title">Fotball</h2>
-                            <div class="widget-subtitle" id="fpl-deadline"></div>
-                        </div>
-                        <div id="football-fixtures" class="football-fixtures"></div>
-                    </section>
-                </a>
+                <div class="bottom-row">
+                    <a href="football.html" class="widget-link">
+                        <section class="widget widget-football clickable">
+                            <div class="football-header">
+                                <h2 class="widget-title" id="football-title">Fotball</h2>
+                                <div class="widget-subtitle" id="fpl-deadline"></div>
+                            </div>
+                            <div id="football-fixtures" class="football-fixtures"></div>
+                        </section>
+                    </a>
+
+                    <a href="shopping.html" class="widget-link">
+                        <section class="widget widget-shopping clickable">
+                            <h2 class="widget-title">🛒 Handleliste</h2>
+                            <div class="widget-subtitle">W56 Felles</div>
+                            <div id="shopping-list" class="shopping-widget-content">
+                                <div class="shopping-loading">Laster...</div>
+                            </div>
+                        </section>
+                    </a>
+                </div>
             </div>
 
             <div class="right-column">
@@ -86,5 +102,6 @@
     <script src="stocks.js"></script>
     <script src="football.js"></script>
     <script src="calendar.js"></script>
+    <script src="shopping.js"></script>
 </body>
 </html>

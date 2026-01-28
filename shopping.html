@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280, height=720, initial-scale=1.0, user-scalable=no">
+    <title>Handleliste - Smarthub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="detail-style.css">
+    <style>
+        .shopping-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 1.5rem;
+            height: 100%;
+        }
+
+        .shopping-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .shopping-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .shopping-item:hover {
+            background: var(--accent-soft);
+        }
+
+        .shopping-item.checked {
+            opacity: 0.5;
+        }
+
+        .shopping-item.checked .item-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .item-checkbox {
+            width: 28px;
+            height: 28px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .shopping-item.checked .item-checkbox {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .item-checkbox::after {
+            content: "✓";
+            color: white;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .shopping-item.checked .item-checkbox::after {
+            opacity: 1;
+        }
+
+        .item-text {
+            flex: 1;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .item-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .shopping-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .add-form {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .add-form-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .add-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 0.75rem;
+        }
+
+        .add-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .telegram-info {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .telegram-info-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .telegram-bot-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .telegram-icon {
+            font-size: 1.5rem;
+        }
+
+        .telegram-commands {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .telegram-commands code {
+            background: var(--bg-secondary);
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .clear-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        .clear-btn:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .shopping-empty {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .shopping-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="detail-page">
+        <header class="detail-header">
+            <div class="detail-header-left">
+                <a href="/" class="back-button">←</a>
+                <div>
+                    <h1 class="detail-title">Handleliste</h1>
+                    <div class="detail-subtitle">W56 Felles liste</div>
+                </div>
+            </div>
+            <div class="detail-header-center">
+                <div id="detail-clock" class="detail-clock">--:--:--</div>
+                <div id="detail-date" class="detail-date">Laster dato...</div>
+            </div>
+            <div class="detail-header-right">
+                <div class="countdown-display">
+                    <span>Tilbake om</span>
+                    <span id="countdown">3:00</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="detail-content">
+            <div class="shopping-container">
+                <div class="shopping-main">
+                    <div class="detail-card" style="flex: 1; display: flex; flex-direction: column;">
+                        <div class="detail-card-title">🛒 Handleliste</div>
+                        <div id="shopping-items" class="shopping-list">
+                            <div class="shopping-empty">Laster...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="shopping-sidebar">
+                    <div class="add-form">
+                        <div class="add-form-title">➕ Legg til vare</div>
+                        <input type="text" id="add-input" class="add-input" placeholder="Skriv vare..." autocomplete="off">
+                        <button class="add-btn" onclick="addItem()">Legg til</button>
+                    </div>
+
+                    <div class="telegram-info">
+                        <div class="telegram-info-title">📱 Telegram Bot</div>
+                        <a href="https://t.me/W56HandlelisteBot" target="_blank" class="telegram-bot-link">
+                            <span class="telegram-icon">🤖</span>
+                            <span>@W56HandlelisteBot</span>
+                        </a>
+                        <div class="telegram-commands">
+                            <code>/add melk</code> - Legg til<br>
+                            <code>/list</code> - Se listen<br>
+                            <code>/done melk</code> - Merk ferdig<br>
+                            <code>/clear</code> - Fjern ferdige
+                        </div>
+                    </div>
+
+                    <button class="clear-btn" onclick="clearChecked()">🧹 Fjern avkryssede</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="detail-page.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/shopping';
+
+        async function fetchList() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                renderList(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('shopping-items').innerHTML = 
+                    '<div class="shopping-empty">Kunne ikke laste listen</div>';
+            }
+        }
+
+        function renderList(data) {
+            const container = document.getElementById('shopping-items');
+            
+            if (!data.items || data.items.length === 0) {
+                container.innerHTML = '<div class="shopping-empty">🛒 Listen er tom!<br><br>Legg til varer her eller via Telegram-boten.</div>';
+                return;
+            }
+
+            // Sort: unchecked first, then by added time
+            const sorted = [...data.items].sort((a, b) => {
+                if (a.checked !== b.checked) return a.checked ? 1 : -1;
+                return 0;
+            });
+
+            let html = '';
+            for (const item of sorted) {
+                const checkedClass = item.checked ? 'checked' : '';
+                html += `
+                    <div class="shopping-item ${checkedClass}" onclick="toggleItem(${item.id})">
+                        <div class="item-checkbox"></div>
+                        <span class="item-text">${item.text}</span>
+                        <span class="item-meta">${item.added_by}</span>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        async function addItem() {
+            const input = document.getElementById('add-input');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            try {
+                await fetch(`${API_URL}/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ item: text, added_by: 'SmartHub' })
+                });
+                input.value = '';
+                fetchList();
+            } catch (error) {
+                console.error('Error adding item:', error);
+            }
+        }
+
+        async function toggleItem(id) {
+            try {
+                await fetch(`${API_URL}/toggle/${id}`, { method: 'POST' });
+                fetchList();
+            } catch (error) {
+                console.error('Error toggling item:', error);
+            }
+        }
+
+        async function clearChecked() {
+            try {
+                await fetch(`${API_URL}/clear`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                fetchList();
+            } catch (error) {
+                console.error('Error clearing:', error);
+            }
+        }
+
+        // Handle enter key in input
+        document.getElementById('add-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addItem();
+        });
+
+        // Initial fetch
+        fetchList();
+
+        // Update every 10 seconds
+        setInterval(fetchList, 10000);
+    </script>
+</body>
+</html>

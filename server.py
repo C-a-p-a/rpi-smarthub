@@ -1,9 +1,84 @@
-from flask import Flask, jsonify, Response
+from flask import Flask, jsonify, Response, request
 from flask_cors import CORS
 import requests
+import json
+import os
+import threading
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
+
+# ===== SHOPPING LIST =====
+SHOPPING_LIST_FILE = "shopping_list.json"
+TELEGRAM_BOT_TOKEN = "8394229108:AAFrEXwpOyUIWfdBjxBOgI2haCtE5s5yigc"
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
+
+def load_shopping_list():
+    """Load shopping list from file"""
+    if os.path.exists(SHOPPING_LIST_FILE):
+        with open(SHOPPING_LIST_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {"items": [], "last_updated": None}
+
+def save_shopping_list(data):
+    """Save shopping list to file"""
+    data["last_updated"] = datetime.now().isoformat()
+    with open(SHOPPING_LIST_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def add_item(item_text, added_by="SmartHub"):
+    """Add item to shopping list"""
+    data = load_shopping_list()
+    item = {
+        "id": len(data["items"]) + 1,
+        "text": item_text.strip(),
+        "added_by": added_by,
+        "added_at": datetime.now().isoformat(),
+        "checked": False
+    }
+    data["items"].append(item)
+    save_shopping_list(data)
+    return item
+
+def remove_item(item_text):
+    """Remove item from shopping list by text"""
+    data = load_shopping_list()
+    item_text_lower = item_text.strip().lower()
+    removed = False
+    data["items"] = [i for i in data["items"] if i["text"].lower() != item_text_lower or (removed := True) and False]
+    # Simple removal - find and remove first match
+    new_items = []
+    found = False
+    for i in data["items"]:
+        if not found and i["text"].lower() == item_text_lower:
+            found = True
+            removed = True
+        else:
+            new_items.append(i)
+    data["items"] = new_items
+    save_shopping_list(data)
+    return removed
+
+def toggle_item(item_id):
+    """Toggle item checked status"""
+    data = load_shopping_list()
+    for item in data["items"]:
+        if item["id"] == item_id:
+            item["checked"] = not item["checked"]
+            save_shopping_list(data)
+            return item
+    return None
+
+def clear_checked():
+    """Remove all checked items"""
+    data = load_shopping_list()
+    data["items"] = [i for i in data["items"] if not i["checked"]]
+    save_shopping_list(data)
+
+def clear_all():
+    """Clear entire shopping list"""
+    save_shopping_list({"items": [], "last_updated": None})
 
 # NRK RSS Feed URL
 NRK_RSS_URL = "https://www.nrk.no/toppsaker.rss"
@@ -360,5 +435,175 @@ def calendar():
     })
 
 
+# ===== SHOPPING LIST ENDPOINTS =====
+
+@app.route('/shopping')
+def get_shopping_list():
+    """Get current shopping list"""
+    return jsonify(load_shopping_list())
+
+@app.route('/shopping/add', methods=['POST'])
+def api_add_item():
+    """Add item via API"""
+    data = request.json
+    if data and data.get("item"):
+        item = add_item(data["item"], data.get("added_by", "SmartHub"))
+        return jsonify({"success": True, "item": item})
+    return jsonify({"success": False, "error": "No item provided"}), 400
+
+@app.route('/shopping/toggle/<int:item_id>', methods=['POST'])
+def api_toggle_item(item_id):
+    """Toggle item checked status"""
+    item = toggle_item(item_id)
+    if item:
+        return jsonify({"success": True, "item": item})
+    return jsonify({"success": False, "error": "Item not found"}), 404
+
+@app.route('/shopping/remove', methods=['POST'])
+def api_remove_item():
+    """Remove item by text"""
+    data = request.json
+    if data and data.get("item"):
+        removed = remove_item(data["item"])
+        return jsonify({"success": removed})
+    return jsonify({"success": False, "error": "No item provided"}), 400
+
+@app.route('/shopping/clear', methods=['POST'])
+def api_clear_list():
+    """Clear checked items or all items"""
+    data = request.json or {}
+    if data.get("all"):
+        clear_all()
+    else:
+        clear_checked()
+    return jsonify({"success": True})
+
+
+# ===== TELEGRAM BOT =====
+
+def send_telegram_message(chat_id, text):
+    """Send message via Telegram bot"""
+    url = f"{TELEGRAM_API_URL}/sendMessage"
+    requests.post(url, json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"})
+
+def format_list_message():
+    """Format shopping list for Telegram"""
+    data = load_shopping_list()
+    if not data["items"]:
+        return "🛒 <b>Handlelisten er tom!</b>\n\nBruk /add [vare] for å legge til."
+    
+    unchecked = [i for i in data["items"] if not i["checked"]]
+    checked = [i for i in data["items"] if i["checked"]]
+    
+    msg = "🛒 <b>Handleliste W56</b>\n\n"
+    
+    if unchecked:
+        for item in unchecked:
+            msg += f"• {item['text']}\n"
+    
+    if checked:
+        msg += "\n<s>Ferdig:</s>\n"
+        for item in checked:
+            msg += f"<s>• {item['text']}</s>\n"
+    
+    msg += f"\n<i>Sist oppdatert: {data.get('last_updated', 'ukjent')[:16] if data.get('last_updated') else 'aldri'}</i>"
+    return msg
+
+def handle_telegram_message(message):
+    """Process incoming Telegram message"""
+    chat_id = message["chat"]["id"]
+    text = message.get("text", "").strip()
+    user = message.get("from", {}).get("first_name", "Ukjent")
+    
+    if not text:
+        return
+    
+    # Commands
+    if text.lower() == "/start":
+        send_telegram_message(chat_id, 
+            "👋 Hei! Jeg er W56 Handleliste-boten!\n\n"
+            "<b>Kommandoer:</b>\n"
+            "/add [vare] - Legg til vare\n"
+            "/list - Se handlelisten\n"
+            "/done [vare] - Merk som ferdig\n"
+            "/remove [vare] - Fjern vare\n"
+            "/clear - Fjern ferdige varer\n"
+            "/clearall - Tøm hele listen"
+        )
+    
+    elif text.lower() == "/list":
+        send_telegram_message(chat_id, format_list_message())
+    
+    elif text.lower().startswith("/add "):
+        item_text = text[5:].strip()
+        if item_text:
+            add_item(item_text, user)
+            send_telegram_message(chat_id, f"✅ Lagt til: <b>{item_text}</b>")
+        else:
+            send_telegram_message(chat_id, "❌ Bruk: /add [vare]")
+    
+    elif text.lower().startswith("/done "):
+        item_text = text[6:].strip()
+        data = load_shopping_list()
+        found = False
+        for item in data["items"]:
+            if item["text"].lower() == item_text.lower():
+                item["checked"] = True
+                found = True
+                break
+        if found:
+            save_shopping_list(data)
+            send_telegram_message(chat_id, f"✅ Markert som ferdig: <s>{item_text}</s>")
+        else:
+            send_telegram_message(chat_id, f"❌ Fant ikke: {item_text}")
+    
+    elif text.lower().startswith("/remove "):
+        item_text = text[8:].strip()
+        if remove_item(item_text):
+            send_telegram_message(chat_id, f"🗑️ Fjernet: {item_text}")
+        else:
+            send_telegram_message(chat_id, f"❌ Fant ikke: {item_text}")
+    
+    elif text.lower() == "/clear":
+        clear_checked()
+        send_telegram_message(chat_id, "🧹 Fjernet alle ferdige varer!")
+    
+    elif text.lower() == "/clearall":
+        clear_all()
+        send_telegram_message(chat_id, "🗑️ Handlelisten er nå tom!")
+    
+    else:
+        # If it's just text without command, treat as adding item
+        if not text.startswith("/"):
+            add_item(text, user)
+            send_telegram_message(chat_id, f"✅ Lagt til: <b>{text}</b>")
+
+def telegram_polling():
+    """Poll Telegram for updates"""
+    last_update_id = 0
+    print("🤖 Telegram bot started!")
+    
+    while True:
+        try:
+            url = f"{TELEGRAM_API_URL}/getUpdates?offset={last_update_id + 1}&timeout=30"
+            r = requests.get(url, timeout=35)
+            
+            if r.status_code == 200:
+                updates = r.json().get("result", [])
+                for update in updates:
+                    last_update_id = update["update_id"]
+                    if "message" in update:
+                        handle_telegram_message(update["message"])
+        except Exception as e:
+            print(f"Telegram polling error: {e}")
+        
+        import time
+        time.sleep(1)
+
+
 if __name__ == "__main__":
+    # Start Telegram bot in background thread
+    telegram_thread = threading.Thread(target=telegram_polling, daemon=True)
+    telegram_thread.start()
+    
     app.run(host="0.0.0.0", port=5000)
