@@ -16,8 +16,11 @@
                 <a href="wifi.html" class="header-btn" title="WiFi QR-kode">📶</a>
                 <a href="shopping.html" class="header-btn" title="Handleliste">🛒</a>
             </div>
-            <div id="clock" class="clock">--:--:--</div>
-            <div id="date" class="date">Laster dato...</div>
+            <div class="header-center">
+                <div class="welcome-text">Velkommen til W56!</div>
+                <div id="clock" class="clock">--:--:--</div>
+                <div id="date" class="date">Laster dato...</div>
+            </div>
         </header>
 
         <main class="main">
@@ -27,7 +30,15 @@
                         <h2 class="widget-title">Været</h2>
                         <div class="widget-subtitle">Møhlenpris, Bergen</div>
                         <div id="weather" class="weather-content">
-                            <div class="weather-loading">Laster vær...</div>
+                            <div class="skeleton-loading">
+                                <div class="skeleton skeleton-item" style="height: 80px;"></div>
+                                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+                                    <div class="skeleton" style="height: 70px; border-radius: 8px;"></div>
+                                    <div class="skeleton" style="height: 70px; border-radius: 8px;"></div>
+                                    <div class="skeleton" style="height: 70px; border-radius: 8px;"></div>
+                                    <div class="skeleton" style="height: 70px; border-radius: 8px;"></div>
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </a>
@@ -48,30 +59,55 @@
                             <h2 class="widget-title">🛒 Handleliste</h2>
                             <div class="widget-subtitle">W56 Felles</div>
                             <div id="shopping-list" class="shopping-widget-content">
-                                <div class="shopping-loading">Laster...</div>
+                                <div class="skeleton-loading">
+                                    <div class="skeleton skeleton-item"></div>
+                                    <div class="skeleton skeleton-item"></div>
+                                    <div class="skeleton skeleton-item"></div>
+                                </div>
+                            </div>
+                        </section>
+                    </a>
+
+                    <a href="calendar.html" class="widget-link">
+                        <section class="widget widget-calendar clickable">
+                            <h2 class="widget-title">Kalender</h2>
+                            <div id="calendar-events" class="calendar-content">
+                                <div class="skeleton-loading">
+                                    <div class="skeleton skeleton-item"></div>
+                                    <div class="skeleton skeleton-item"></div>
+                                    <div class="skeleton skeleton-item"></div>
+                                </div>
                             </div>
                         </section>
                     </a>
                 </div>
             </div>
 
-            <div class="right-column">
+            <div class="center-column">
                 <a href="bus.html" class="widget-link">
                     <section class="widget widget-departures clickable">
                         <h2 class="widget-title">Bussavganger</h2>
                         <div class="widget-subtitle">Møhlenpris → Sentrum · <span class="walk-time">2-3 min å gå til busstopp</span></div>
-                        <div id="departures" class="departures-list"></div>
-                    </section>
-                </a>
-
-                <a href="calendar.html" class="widget-link">
-                    <section class="widget widget-calendar clickable">
-                        <h2 class="widget-title">Kalender</h2>
-                        <div id="calendar-events" class="calendar-content">
-                            <div class="calendar-loading">Laster kalender...</div>
+                        <div id="departures" class="departures-list">
+                            <div class="skeleton-loading">
+                                <div class="skeleton skeleton-item"></div>
+                                <div class="skeleton skeleton-item"></div>
+                                <div class="skeleton skeleton-item"></div>
+                                <div class="skeleton skeleton-item"></div>
+                                <div class="skeleton skeleton-item"></div>
+                            </div>
                         </div>
                     </section>
                 </a>
+            </div>
+
+            <div class="right-column">
+                <div class="app-icons">
+                    <a href="wifi.html" class="app-icon" title="WiFi QR-kode">
+                        <span class="app-icon-emoji">📶</span>
+                        <span class="app-icon-label">WiFi</span>
+                    </a>
+                </div>
             </div>
         </main>
 
@@ -80,7 +116,9 @@
                 <div class="ticker ticker-news clickable">
                     <div id="news-source" class="ticker-label news-label">...</div>
                     <div class="ticker-content">
-                        <div id="news-headline" class="news-headline">Laster nyheter...</div>
+                        <div id="news-headline" class="news-headline">
+                            <span class="skeleton skeleton-line" style="display: inline-block; width: 300px; height: 1rem;"></span>
+                        </div>
                     </div>
                 </div>
             </a>
@@ -88,7 +126,9 @@
                 <div class="ticker ticker-stocks clickable">
                     <div id="stocks-label" class="ticker-label stocks-label">AKSJER</div>
                     <div class="ticker-content">
-                        <div id="stocks-display" class="stocks-display">Laster aksjer...</div>
+                        <div id="stocks-display" class="stocks-display">
+                            <span class="skeleton skeleton-line" style="display: inline-block; width: 400px; height: 1rem;"></span>
+                        </div>
                     </div>
                 </div>
             </a>

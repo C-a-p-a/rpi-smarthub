@@ -109,6 +109,7 @@
             align-items: center;
             gap: 1rem;
         }
+        
     </style>
 </head>
 <body>
@@ -278,8 +279,21 @@
             container.innerHTML = html;
         }
 
+        // Open article in new tab with auto-close timer
+        let articleWindow = null;
+        let articleTimer = null;
+        
         function openArticle(url) {
-            window.open(url, '_blank');
+            // Open article in new tab
+            articleWindow = window.open(url, '_blank');
+            
+            // Auto-close after 90 seconds so user returns to SmartHub
+            articleTimer = setTimeout(() => {
+                if (articleWindow && !articleWindow.closed) {
+                    articleWindow.close();
+                }
+                articleWindow = null;
+            }, 90000); // 90 seconds to read the article
         }
 
         function startAutoRotate() {

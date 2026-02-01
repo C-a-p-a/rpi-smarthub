@@ -36,3 +36,27 @@ updateDate();
 
 // Update date at midnight
 setInterval(updateDate, 60000);
+
+// === INACTIVITY AUTO-REDIRECT ===
+// Redirects to homepage after 2 minutes of no touch/interaction
+const INACTIVITY_TIMEOUT = 2 * 60 * 1000; // 2 minutes
+let inactivityTimer;
+
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    
+    // Only set timer if we're NOT on the homepage
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+        inactivityTimer = setTimeout(() => {
+            window.location.href = '/';
+        }, INACTIVITY_TIMEOUT);
+    }
+}
+
+// Reset timer on any interaction
+['touchstart', 'touchmove', 'click', 'mousemove', 'keydown', 'scroll'].forEach(event => {
+    document.addEventListener(event, resetInactivityTimer, { passive: true });
+});
+
+// Start the timer
+resetInactivityTimer();

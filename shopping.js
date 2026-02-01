@@ -10,7 +10,11 @@ async function fetchShoppingList() {
         console.error('Error fetching shopping list:', error);
         const container = document.getElementById('shopping-list');
         if (container) {
-            container.innerHTML = '<div class="shopping-empty">Kunne ikke laste</div>';
+            container.innerHTML = `
+                <div class="error-state error-warning">
+                    <span class="error-state-icon">🛒</span>
+                    <span class="error-state-message">Kunne ikke laste</span>
+                </div>`;
         }
     }
 }
@@ -20,7 +24,11 @@ function renderShoppingWidget(data) {
     if (!container) return;
     
     if (!data.items || data.items.length === 0) {
-        container.innerHTML = '<div class="shopping-empty">Listen er tom!</div>';
+        container.innerHTML = `
+            <div class="error-state">
+                <span class="error-state-icon">✅</span>
+                <span class="error-state-message">Listen er tom!</span>
+            </div>`;
         return;
     }
     

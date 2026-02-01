@@ -15,8 +15,12 @@ async function fetchCalendar() {
         
     } catch (error) {
         console.error('Error fetching calendar:', error);
-        document.getElementById('calendar-events').innerHTML = 
-            '<div class="calendar-error">Kunne ikke laste kalender</div>';
+        document.getElementById('calendar-events').innerHTML = `
+            <div class="error-state error-danger">
+                <span class="error-state-icon">📅</span>
+                <span class="error-state-message">Kunne ikke laste kalender</span>
+                <span class="error-state-hint">Prøver igjen snart</span>
+            </div>`;
     }
 }
 
@@ -27,7 +31,12 @@ function renderCalendar(data) {
     const tomorrowEvents = data.tomorrow || [];
     
     if (todayEvents.length === 0 && tomorrowEvents.length === 0) {
-        container.innerHTML = '<div class="calendar-empty">Ingen hendelser</div>';
+        container.innerHTML = `
+            <div class="error-state">
+                <span class="error-state-icon">✨</span>
+                <span class="error-state-message">Ingen hendelser</span>
+                <span class="error-state-hint">Nyt fridagen!</span>
+            </div>`;
         return;
     }
     

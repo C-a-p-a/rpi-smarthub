@@ -12,27 +12,36 @@
     <style>
         .wifi-container {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100%;
-            gap: 1rem;
+            gap: 2rem;
         }
 
         .wifi-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 1.5rem 2.5rem 2rem;
-            text-align: center;
-            max-width: 420px;
+            border-radius: 24px;
+            padding: 2rem 3rem;
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            max-width: 900px;
+        }
+
+        /* Polar bear - make it prominent */
+        .wifi-mascot {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
         }
 
         .svg-container {
             position: relative;
-            width: 180px;
-            height: 180px;
-            margin: 0 auto 0.5rem;
+            width: 280px;
+            height: 280px;
             border-radius: 50%;
             pointer-events: none;
         }
@@ -64,49 +73,58 @@
             width: inherit;
             height: inherit;
             box-sizing: border-box;
-            border: solid 2.5px #217093;
+            border: solid 3px #217093;
             border-radius: 50%;
         }
 
         .wifi-title {
-            font-size: 1.4rem;
+            font-size: 1.8rem;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 0.25rem;
+            text-align: center;
+        }
+
+        /* Right side - QR and details */
+        .wifi-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.25rem;
         }
 
         .wifi-subtitle {
-            font-size: 0.85rem;
+            font-size: 1rem;
             color: var(--text-muted);
-            margin-bottom: 1.5rem;
+            text-align: center;
         }
 
         .qr-code {
             background: white;
-            padding: 0.75rem;
-            border-radius: 12px;
+            padding: 1rem;
+            border-radius: 16px;
             display: inline-block;
-            margin-bottom: 1.25rem;
         }
 
         .qr-code img {
             display: block;
-            width: 180px;
-            height: 180px;
+            width: 200px;
+            height: 200px;
         }
 
         .wifi-details {
             text-align: left;
             background: var(--bg-secondary);
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            width: 100%;
+            min-width: 280px;
         }
 
         .wifi-detail-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.4rem 0;
+            padding: 0.5rem 0;
             border-bottom: 1px solid var(--border);
         }
 
@@ -116,22 +134,22 @@
 
         .wifi-detail-label {
             color: var(--text-muted);
-            font-size: 0.8rem;
+            font-size: 0.9rem;
         }
 
         .wifi-detail-value {
             color: var(--text-primary);
             font-weight: 500;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             font-family: 'SF Mono', 'Consolas', monospace;
         }
 
         .password-row {
             cursor: pointer;
             transition: background 0.2s;
-            margin: 0 -1rem;
-            padding: 0.4rem 1rem;
-            border-radius: 6px;
+            margin: 0 -1.25rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
         }
 
         .password-row:hover {
@@ -144,9 +162,9 @@
         }
 
         .wifi-hint {
-            margin-top: 1rem;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
+            text-align: center;
         }
     </style>
 </head>
@@ -175,10 +193,11 @@
         <div class="detail-content">
             <div class="wifi-container">
                 <div class="wifi-card">
-                    <!-- Yeti SVG Character -->
-                    <div class="svg-container">
-                        <div>
-                            <svg class="mySVG" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 200">
+                    <!-- Left side: Polar bear mascot -->
+                    <div class="wifi-mascot">
+                        <div class="svg-container">
+                            <div>
+                                <svg class="mySVG" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 200">
                                 <defs>
                                     <circle id="armMaskPath" cx="100" cy="100" r="100"/>	
                                 </defs>
@@ -258,33 +277,37 @@
                                     </g>				
                                 </g>
                             </svg>
+                            </div>
                         </div>
+                        <div class="wifi-title">Velkommen til W56!</div>
                     </div>
 
-                    <div class="wifi-title">Velkommen til W56!</div>
-                    <div class="wifi-subtitle">Skann QR-koden for å koble til WiFi</div>
-                    
-                    <div class="qr-code">
-                        <img id="qr-image" src="" alt="WiFi QR Code">
-                    </div>
+                    <!-- Right side: QR code and details -->
+                    <div class="wifi-info">
+                        <div class="wifi-subtitle">Skann QR-koden for å koble til WiFi</div>
+                        
+                        <div class="qr-code">
+                            <img id="qr-image" src="" alt="WiFi QR Code">
+                        </div>
 
-                    <div class="wifi-details">
-                        <div class="wifi-detail-row">
-                            <span class="wifi-detail-label">Nettverk</span>
-                            <span class="wifi-detail-value" id="ssid-display">Altibox740414</span>
+                        <div class="wifi-details">
+                            <div class="wifi-detail-row">
+                                <span class="wifi-detail-label">Nettverk</span>
+                                <span class="wifi-detail-value" id="ssid-display">Altibox740414</span>
+                            </div>
+                            <div class="wifi-detail-row password-row" onclick="togglePassword()">
+                                <span class="wifi-detail-label">Passord</span>
+                                <span class="wifi-detail-value password-toggle" id="password-display">••••••••</span>
+                            </div>
+                            <div class="wifi-detail-row">
+                                <span class="wifi-detail-label">Sikkerhet</span>
+                                <span class="wifi-detail-value">WPA2</span>
+                            </div>
                         </div>
-                        <div class="wifi-detail-row password-row" onclick="togglePassword()">
-                            <span class="wifi-detail-label">Passord</span>
-                            <span class="wifi-detail-value password-toggle" id="password-display">••••••••</span>
-                        </div>
-                        <div class="wifi-detail-row">
-                            <span class="wifi-detail-label">Sikkerhet</span>
-                            <span class="wifi-detail-value">WPA2</span>
-                        </div>
-                    </div>
 
-                    <div class="wifi-hint">
-                        Trykk på passord-feltet for å vise/skjule
+                        <div class="wifi-hint">
+                            Trykk på passord-feltet for å vise/skjule
+                        </div>
                     </div>
                 </div>
             </div>

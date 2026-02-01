@@ -70,20 +70,34 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
 
             if (data.error) {
-                container.innerHTML = '<div class="departure-error">Feil ved henting av avganger</div>';
+                container.innerHTML = `
+                    <div class="error-state error-danger">
+                        <span class="error-state-icon">⚠️</span>
+                        <span class="error-state-message">Kunne ikke hente avganger</span>
+                        <span class="error-state-hint">Sjekk nettverkstilkobling</span>
+                    </div>`;
                 return;
             }
 
             const stopPlace = data.data?.stopPlace;
             if (!stopPlace) {
-                container.innerHTML = '<div class="departure-error">Ingen data fra stoppested</div>';
+                container.innerHTML = `
+                    <div class="error-state error-warning">
+                        <span class="error-state-icon">📡</span>
+                        <span class="error-state-message">Ingen data fra Entur</span>
+                        <span class="error-state-hint">Prøver igjen snart...</span>
+                    </div>`;
                 return;
             }
 
             const departures = stopPlace.estimatedCalls || [];
 
             if (departures.length === 0) {
-                container.innerHTML = '<div class="departure-error">Ingen avganger funnet</div>';
+                container.innerHTML = `
+                    <div class="error-state">
+                        <span class="error-state-icon">🚌</span>
+                        <span class="error-state-message">Ingen avganger funnet</span>
+                    </div>`;
                 return;
             }
 
@@ -94,7 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (northboundDepartures.length === 0) {
-                container.innerHTML = '<div class="departure-error">Ingen nordgående avganger funnet</div>';
+                container.innerHTML = `
+                    <div class="error-state">
+                        <span class="error-state-icon">🚌</span>
+                        <span class="error-state-message">Ingen avganger mot sentrum</span>
+                    </div>`;
                 return;
             }
 
@@ -128,12 +146,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (count === 0) {
-                container.innerHTML = '<div class="departure-error">Ingen avganger de neste minuttene</div>';
+                container.innerHTML = `
+                    <div class="error-state">
+                        <span class="error-state-icon">⏰</span>
+                        <span class="error-state-message">Ingen avganger snart</span>
+                        <span class="error-state-hint">Neste avgang om en stund</span>
+                    </div>`;
             }
 
         } catch (err) {
             console.error('Kunne ikke hente avganger:', err);
-            container.innerHTML = '<div class="departure-error">Kunne ikke hente avganger</div>';
+            container.innerHTML = `
+                <div class="error-state error-danger">
+                    <span class="error-state-icon">❌</span>
+                    <span class="error-state-message">Tilkoblingsfeil</span>
+                    <span class="error-state-hint">Prøver igjen om 30 sek</span>
+                </div>`;
         }
     }
 

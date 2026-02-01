@@ -1,7 +1,7 @@
 // Detail page common functionality
-// Auto-redirect to home after 3 minutes, with visible countdown
+// Auto-redirect to home after 90 seconds, with visible countdown
 
-const REDIRECT_TIMEOUT = 3 * 60 * 1000; // 3 minutes in ms
+const REDIRECT_TIMEOUT = 90 * 1000; // 90 seconds in ms
 let timeRemaining = REDIRECT_TIMEOUT;
 let countdownInterval;
 

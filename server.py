@@ -395,6 +395,7 @@ CALENDAR_FEEDS = [
     "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMv0FJ4ZvTrNIcFqEfKTAu7jcVPba4ym4b23Ho-YqY0cpttPb4rFlpvh85wMhOn9ZjM",
     "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMtaZRHwsuiEFJPF0vvRCsmbYOk65qb1HVmxCjJFBGYXB0HRfSslzam-C7313TcaiXo",
     "https://calendars.icloud.com/holidays/no_no.ics",
+    "https://ics.ecal.com/ecal-sub/64e147102c0db7000d1c9108/English%20Premier%20League.ics",
 ]
 
 
