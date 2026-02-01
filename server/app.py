@@ -509,6 +509,32 @@ def wifi_credentials():
     })
 
 
+# ===== RASPBERRY PI SYSTEM INFO =====
+
+@app.route('/temperature')
+def get_temperature():
+    """Get Raspberry Pi CPU temperature"""
+    try:
+        # Try to read from thermal zone (Raspberry Pi standard location)
+        with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
+            temp_str = f.read().strip()
+            # Temperature is in millidegrees Celsius
+            temp_celsius = float(temp_str) / 1000.0
+            return jsonify({
+                "temperature": round(temp_celsius, 1),
+                "unit": "C"
+            })
+    except FileNotFoundError:
+        # Fallback for non-RPi systems (development)
+        return jsonify({
+            "temperature": 42.0,
+            "unit": "C",
+            "mock": True
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # ===== SHOPPING LIST ENDPOINTS =====
 
 @app.route('/shopping')
