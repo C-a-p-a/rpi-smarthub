@@ -5,13 +5,17 @@ import json
 import os
 import threading
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 # ===== SHOPPING LIST =====
 SHOPPING_LIST_FILE = "shopping_list.json"
-TELEGRAM_BOT_TOKEN = "8394229108:AAFrEXwpOyUIWfdBjxBOgI2haCtE5s5yigc"
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
 def load_shopping_list():
@@ -115,7 +119,7 @@ STOCK_SYMBOLS = [
     {"symbol": "UFO", "name": "VanEck Space", "premarket": True, "is_index": False, "category": "fund"},
 ]
 
-STOP_ID = "NSR:StopPlace:30918"  # Møhlenpris
+STOP_ID = os.getenv("ENTUR_STOP_ID", "NSR:StopPlace:30918")  # Møhlenpris
 ENTUR_URL = "https://api.entur.io/journey-planner/v3/graphql"
 
 QUERY = """
@@ -290,7 +294,7 @@ def stocks():
 
 
 # SportDB Flashscore API
-SPORTDB_API_KEY = "L52UCRmPkCwYi9ONoTtRrcjN7gD9Kw3KjAHmnFRk"
+SPORTDB_API_KEY = os.getenv("SPORTDB_API_KEY", "")
 SPORTDB_BASE_URL = "https://api.sportdb.dev/api/flashscore"
 
 # League endpoints
@@ -388,15 +392,8 @@ def football():
     })
 
 
-# Calendar ICS feeds
-CALENDAR_FEEDS = [
-    "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMtcFQpwEsezKo9y4SkmQp_l",
-    "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMtvHWx7DRNJ15tejm_iPCzU",
-    "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMv0FJ4ZvTrNIcFqEfKTAu7jcVPba4ym4b23Ho-YqY0cpttPb4rFlpvh85wMhOn9ZjM",
-    "https://p191-caldav.icloud.com/published/2/MTcxNDU1NTcwMzExNzE0NRBxL34ctG9-eFifg7_MeMtaZRHwsuiEFJPF0vvRCsmbYOk65qb1HVmxCjJFBGYXB0HRfSslzam-C7313TcaiXo",
-    "https://calendars.icloud.com/holidays/no_no.ics",
-    "https://ics.ecal.com/ecal-sub/64e147102c0db7000d1c9108/English%20Premier%20League.ics",
-]
+# Calendar ICS feeds (loaded from environment variable, comma-separated)
+CALENDAR_FEEDS = [url.strip() for url in os.getenv("CALENDAR_FEEDS", "").split(",") if url.strip()]
 
 
 @app.route('/calendar')

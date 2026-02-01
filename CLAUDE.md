@@ -69,6 +69,14 @@ Background thread runs Telegram bot for shopping list management via commands (`
 
 All UI text, dates, and content are in Norwegian. Date formatting uses Norwegian locale with ISO week numbers.
 
+## Environment Variables
+
+Configuration is stored in `.env` (copy from `.env.example`):
+- `TELEGRAM_BOT_TOKEN` - Telegram bot for shopping list
+- `SPORTDB_API_KEY` - Football match data
+- `ENTUR_STOP_ID` - Bus stop ID for departures
+- `CALENDAR_FEEDS` - Comma-separated iCal URLs
+
 ## External Dependencies
 
 CDN resources:
@@ -76,4 +84,4 @@ CDN resources:
 - Google Fonts (Inter)
 
 Python packages (not in requirements.txt):
-- flask, flask-cors, requests, icalendar, python-dateutil
+- flask, flask-cors, requests, icalendar, python-dateutil, python-dotenv

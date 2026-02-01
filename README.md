@@ -24,7 +24,7 @@ Built for a shared residence in Bergen, Norway (W56).
 ### Python Dependencies
 
 ```bash
-pip install flask flask-cors requests icalendar python-dateutil
+pip install flask flask-cors requests icalendar python-dateutil python-dotenv
 ```
 
 ## Setup
@@ -35,10 +35,15 @@ pip install flask flask-cors requests icalendar python-dateutil
    cd rpi-smarthub
    ```
 
-2. Configure API credentials in `server.py`:
-   - Telegram Bot Token (line 14)
-   - SportDB API Key (line 293)
-   - iCloud CalDAV URLs (lines 392-399)
+2. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   Then edit `.env` with your credentials:
+   - `TELEGRAM_BOT_TOKEN` - Your Telegram bot token from @BotFather
+   - `SPORTDB_API_KEY` - SportDB API key
+   - `ENTUR_STOP_ID` - Bus stop ID (find at https://stoppested.entur.org)
+   - `CALENDAR_FEEDS` - Comma-separated iCal/CalDAV URLs
 
 3. Start the servers:
    ```bash
@@ -78,6 +83,7 @@ The shopping list can be managed via Telegram:
 ```
 ├── server.py           # Flask API backend
 ├── server.sh           # Startup script for RPi
+├── .env.example        # Environment variables template
 ├── index.html          # Main dashboard
 ├── app.js              # Core dashboard logic
 ├── style.css           # Dashboard styles
