@@ -56,6 +56,7 @@ Single Flask app acting as API aggregator for external services:
 - `/stocks` - Yahoo Finance (with pre/post-market support)
 - `/football` - SportDB API (Premier League, Champions League)
 - `/calendar` - iCloud CalDAV parser
+- `/wifi` - WiFi credentials for QR code generation
 - `/shopping/*` - Local JSON-based shopping list with Telegram bot sync
 
 Background thread runs Telegram bot for shopping list management.
