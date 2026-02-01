@@ -24,7 +24,7 @@ Built for a shared residence in Bergen, Norway (W56).
 ### Python Dependencies
 
 ```bash
-pip install flask flask-cors requests icalendar python-dateutil python-dotenv
+pip install -r requirements.txt
 ```
 
 ## Setup
@@ -35,7 +35,12 @@ pip install flask flask-cors requests icalendar python-dateutil python-dotenv
    cd rpi-smarthub
    ```
 
-2. Configure environment variables:
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Configure environment variables:
    ```bash
    cp .env.example .env
    ```
@@ -45,26 +50,30 @@ pip install flask flask-cors requests icalendar python-dateutil python-dotenv
    - `ENTUR_STOP_ID` - Bus stop ID (find at https://stoppested.entur.org)
    - `CALENDAR_FEEDS` - Comma-separated iCal/CalDAV URLs
 
-3. Start the servers:
+4. Start the servers:
    ```bash
+   # Option 1: Use the start script
+   ./scripts/start.sh
+
+   # Option 2: Manual start
    # Terminal 1: Start Flask API
-   python3 server.py
+   cd server && python3 app.py
 
    # Terminal 2: Serve static files
-   python3 -m http.server 3000
+   cd public && python3 -m http.server 3000
    ```
 
-4. Open `http://localhost:3000` in a browser
+5. Open `http://localhost:3000` in a browser
 
 ### Raspberry Pi Deployment
 
-Copy files to `/home/pi/dashboard` and use the included startup script:
+Use the included startup script:
 
 ```bash
-./server.sh
+./scripts/start.sh
 ```
 
-For auto-start on boot, add to `/etc/rc.local` or create a systemd service.
+For auto-start on boot, create a systemd service.
 
 ## Telegram Bot Commands
 
@@ -81,16 +90,25 @@ The shopping list can be managed via Telegram:
 ## Project Structure
 
 ```
-├── server.py           # Flask API backend
-├── server.sh           # Startup script for RPi
-├── .env.example        # Environment variables template
-├── index.html          # Main dashboard
-├── app.js              # Core dashboard logic
-├── style.css           # Dashboard styles
-├── detail-page.js      # Shared detail page logic
-├── detail-style.css    # Detail page styles
-├── shopping_list.json  # Persistent shopping data
-└── [feature].html/js   # Individual widget pages
+├── server/
+│   └── app.py              # Flask API backend
+├── public/
+│   ├── index.html          # Main dashboard
+│   ├── pages/              # Detail pages (weather, bus, etc.)
+│   ├── css/
+│   │   ├── main.css        # Dashboard styles
+│   │   └── detail.css      # Detail page styles
+│   └── js/
+│       ├── app.js          # Core dashboard logic
+│       ├── detail-page.js  # Shared detail page logic
+│       └── widgets/        # Widget controllers
+├── data/
+│   └── shopping_list.json  # Persistent shopping data
+├── scripts/
+│   └── start.sh            # Startup script
+├── .env.example            # Environment variables template
+├── requirements.txt        # Python dependencies
+└── README.md
 ```
 
 ## Configuration

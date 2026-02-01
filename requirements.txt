@@ -1,0 +1,6 @@
+flask
+flask-cors
+requests
+icalendar
+python-dateutil
+python-dotenv

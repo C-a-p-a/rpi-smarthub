@@ -7,14 +7,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
     <div class="dashboard">
         <header class="header">
             <div class="header-btns-left">
-                <a href="wifi.html" class="header-btn" title="WiFi QR-kode">📶</a>
-                <a href="shopping.html" class="header-btn" title="Handleliste">🛒</a>
+                <a href="pages/wifi.html" class="header-btn" title="WiFi QR-kode">📶</a>
+                <a href="pages/shopping.html" class="header-btn" title="Handleliste">🛒</a>
             </div>
             <div class="header-center">
                 <div class="welcome-text">Velkommen til W56!</div>
@@ -25,7 +25,7 @@
 
         <main class="main">
             <div class="left-column">
-                <a href="weather.html" class="widget-link">
+                <a href="pages/weather.html" class="widget-link">
                     <section class="widget widget-weather clickable">
                         <h2 class="widget-title">Været</h2>
                         <div class="widget-subtitle">Møhlenpris, Bergen</div>
@@ -44,7 +44,7 @@
                 </a>
 
                 <div class="bottom-row">
-                    <a href="football.html" class="widget-link">
+                    <a href="pages/football.html" class="widget-link">
                         <section class="widget widget-football clickable">
                             <div class="football-header">
                                 <h2 class="widget-title" id="football-title">Fotball</h2>
@@ -54,7 +54,7 @@
                         </section>
                     </a>
 
-                    <a href="shopping.html" class="widget-link">
+                    <a href="pages/shopping.html" class="widget-link">
                         <section class="widget widget-shopping clickable">
                             <h2 class="widget-title">🛒 Handleliste</h2>
                             <div class="widget-subtitle">W56 Felles</div>
@@ -68,7 +68,7 @@
                         </section>
                     </a>
 
-                    <a href="calendar.html" class="widget-link">
+                    <a href="pages/calendar.html" class="widget-link">
                         <section class="widget widget-calendar clickable">
                             <h2 class="widget-title">Kalender</h2>
                             <div id="calendar-events" class="calendar-content">
@@ -84,7 +84,7 @@
             </div>
 
             <div class="center-column">
-                <a href="bus.html" class="widget-link">
+                <a href="pages/bus.html" class="widget-link">
                     <section class="widget widget-departures clickable">
                         <h2 class="widget-title">Bussavganger</h2>
                         <div class="widget-subtitle">Møhlenpris → Sentrum · <span class="walk-time">2-3 min å gå til busstopp</span></div>
@@ -103,7 +103,7 @@
 
             <div class="right-column">
                 <div class="app-icons">
-                    <a href="wifi.html" class="app-icon" title="WiFi QR-kode">
+                    <a href="pages/wifi.html" class="app-icon" title="WiFi QR-kode">
                         <span class="app-icon-emoji">📶</span>
                         <span class="app-icon-label">WiFi</span>
                     </a>
@@ -112,7 +112,7 @@
         </main>
 
         <footer class="footer-tickers">
-            <a href="news.html" class="ticker-link">
+            <a href="pages/news.html" class="ticker-link">
                 <div class="ticker ticker-news clickable">
                     <div id="news-source" class="ticker-label news-label">...</div>
                     <div class="ticker-content">
@@ -122,7 +122,7 @@
                     </div>
                 </div>
             </a>
-            <a href="stocks.html" class="ticker-link">
+            <a href="pages/stocks.html" class="ticker-link">
                 <div class="ticker ticker-stocks clickable">
                     <div id="stocks-label" class="ticker-label stocks-label">AKSJER</div>
                     <div class="ticker-content">
@@ -135,13 +135,13 @@
         </footer>
     </div>
 
-    <script src="app.js"></script>
-    <script src="weather.js"></script>
-    <script src="busstider.js"></script>
-    <script src="news.js"></script>
-    <script src="stocks.js"></script>
-    <script src="football.js"></script>
-    <script src="calendar.js"></script>
-    <script src="shopping.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/widgets/weather.js"></script>
+    <script src="js/widgets/bus.js"></script>
+    <script src="js/widgets/news.js"></script>
+    <script src="js/widgets/stocks.js"></script>
+    <script src="js/widgets/football.js"></script>
+    <script src="js/widgets/calendar.js"></script>
+    <script src="js/widgets/shopping.js"></script>
 </body>
 </html>

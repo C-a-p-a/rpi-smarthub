@@ -5,16 +5,20 @@ import json
 import os
 import threading
 from datetime import datetime
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Get the project root directory (parent of server/)
+PROJECT_ROOT = Path(__file__).parent.parent
+
+# Load environment variables from .env file in project root
+load_dotenv(PROJECT_ROOT / ".env")
 
 app = Flask(__name__)
 CORS(app)
 
 # ===== SHOPPING LIST =====
-SHOPPING_LIST_FILE = "shopping_list.json"
+SHOPPING_LIST_FILE = PROJECT_ROOT / "data" / "shopping_list.json"
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 

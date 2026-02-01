@@ -15,67 +15,75 @@ RPi SmartHub is a wall-mounted smart dashboard for Raspberry Pi (1280x720 displa
 ## Running the Application
 
 ```bash
-# Start Flask API server
-python3 server.py
+# Option 1: Use the start script (recommended)
+./scripts/start.sh
 
-# In another terminal, serve static files
-python3 -m http.server 3000
+# Option 2: Manual start
+cd server && python3 app.py          # Terminal 1: Flask API
+cd public && python3 -m http.server 3000  # Terminal 2: Static files
 
 # Access at http://localhost:3000
 ```
 
-On Raspberry Pi, use `./server.sh` from `/home/pi/dashboard`.
+## Project Structure
+
+```
+├── server/
+│   └── app.py              # Flask API backend
+├── public/
+│   ├── index.html          # Main dashboard
+│   ├── pages/              # Detail pages
+│   ├── css/
+│   │   ├── main.css        # Dashboard styles
+│   │   └── detail.css      # Detail page styles
+│   └── js/
+│       ├── app.js          # Core logic
+│       ├── detail-page.js  # Shared detail page logic
+│       └── widgets/        # Widget controllers
+├── data/
+│   └── shopping_list.json  # Persistent data
+├── scripts/
+│   └── start.sh            # Startup script
+└── requirements.txt        # Python dependencies
+```
 
 ## Architecture
 
-### Backend (`server.py`)
+### Backend (`server/app.py`)
 Single Flask app acting as API aggregator for external services:
 - `/departures` - Entur API (Bergen public transport)
-- `/weather` - MET Norway API
 - `/news/all` - RSS feed aggregator (E24, TV2)
 - `/stocks` - Yahoo Finance (with pre/post-market support)
 - `/football` - SportDB API (Premier League, Champions League)
-- `/calendar` - iCloud CalDAV parser (5 calendar feeds)
+- `/calendar` - iCloud CalDAV parser
 - `/shopping/*` - Local JSON-based shopping list with Telegram bot sync
 
-Background thread runs Telegram bot for shopping list management via commands (`/add`, `/list`, `/done`, `/remove`, `/clear`).
+Background thread runs Telegram bot for shopping list management.
 
 ### Frontend Structure
-- **Main dashboard:** `index.html` + `app.js` + `style.css`
-- **Widget controllers:** Each feature has its own JS file (e.g., `weather.js`, `stocks.js`, `busstider.js`)
-- **Detail pages:** Clicking widgets opens dedicated pages (e.g., `weather.html`, `stocks.html`)
-- **Shared detail logic:** `detail-page.js` + `detail-style.css` handle countdown timer and auto-return
+- **Main dashboard:** `public/index.html` + `js/app.js` + `css/main.css`
+- **Widget controllers:** `public/js/widgets/` (weather.js, stocks.js, bus.js, etc.)
+- **Detail pages:** `public/pages/` with shared logic in `js/detail-page.js`
 
 ### Auto-Navigation
 - Main dashboard: Returns after 2 minutes of inactivity
-- Detail pages: Auto-return to main after 90 seconds (countdown visible)
+- Detail pages: Auto-return to main after 90 seconds
 
 ### Data Flow
 - Widgets poll Flask API at intervals (stocks: 60s, news: 5min, shopping: 30s)
-- Shopping list persists to `shopping_list.json` and syncs via Telegram bot
-- All other data is fetched on-demand (no server-side caching)
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `server.py` | All API routes and Telegram bot |
-| `index.html` | Main dashboard layout (4-column grid) |
-| `app.js` | Clock, Norwegian date formatting, inactivity timer |
-| `detail-page.js` | Shared countdown/return logic for detail pages |
-| `shopping_list.json` | Persistent shopping list data |
-
-## Localization
-
-All UI text, dates, and content are in Norwegian. Date formatting uses Norwegian locale with ISO week numbers.
+- Shopping list persists to `data/shopping_list.json` and syncs via Telegram bot
 
 ## Environment Variables
 
-Configuration is stored in `.env` (copy from `.env.example`):
+Configuration stored in `.env` (copy from `.env.example`):
 - `TELEGRAM_BOT_TOKEN` - Telegram bot for shopping list
 - `SPORTDB_API_KEY` - Football match data
 - `ENTUR_STOP_ID` - Bus stop ID for departures
 - `CALENDAR_FEEDS` - Comma-separated iCal URLs
+
+## Localization
+
+All UI text, dates, and content are in Norwegian. Date formatting uses Norwegian locale with ISO week numbers.
 
 ## External Dependencies
 
@@ -83,5 +91,4 @@ CDN resources:
 - Yr Weather Symbols (SVG icons) from cdn.jsdelivr.net
 - Google Fonts (Inter)
 
-Python packages (not in requirements.txt):
-- flask, flask-cors, requests, icalendar, python-dateutil, python-dotenv
+Python packages: See `requirements.txt`
