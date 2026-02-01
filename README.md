@@ -49,6 +49,8 @@ pip install -r requirements.txt
    - `SPORTDB_API_KEY` - SportDB API key
    - `ENTUR_STOP_ID` - Bus stop ID (find at https://stoppested.entur.org)
    - `CALENDAR_FEEDS` - Comma-separated iCal/CalDAV URLs
+   - `WIFI_SSID` - WiFi network name (for QR code page)
+   - `WIFI_PASSWORD` - WiFi password (for QR code page)
 
 4. Start the servers:
    ```bash

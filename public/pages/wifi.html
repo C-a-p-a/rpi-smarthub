@@ -316,15 +316,35 @@
 
     <script src="../js/detail-page.js"></script>
     <script>
-        // WiFi credentials
-        const WIFI_SSID = 'Altibox740414';
-        const WIFI_PASSWORD = 'LLq23rjd';
-        const WIFI_TYPE = 'WPA';
+        // WiFi credentials (loaded from API)
+        let WIFI_SSID = '';
+        let WIFI_PASSWORD = '';
+        let WIFI_TYPE = 'WPA';
 
-        // Generate WiFi QR code
-        const wifiString = `WIFI:T:${WIFI_TYPE};S:${WIFI_SSID};P:${WIFI_PASSWORD};;`;
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(wifiString)}&bgcolor=ffffff&color=000000`;
-        document.getElementById('qr-image').src = qrUrl;
+        // Fetch WiFi credentials from API
+        async function loadWifiCredentials() {
+            try {
+                const response = await fetch('http://localhost:5000/wifi');
+                const data = await response.json();
+                WIFI_SSID = data.ssid;
+                WIFI_PASSWORD = data.password;
+                WIFI_TYPE = data.type || 'WPA';
+
+                // Update display
+                document.getElementById('ssid-display').textContent = WIFI_SSID;
+
+                // Generate WiFi QR code
+                const wifiString = `WIFI:T:${WIFI_TYPE};S:${WIFI_SSID};P:${WIFI_PASSWORD};;`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(wifiString)}&bgcolor=ffffff&color=000000`;
+                document.getElementById('qr-image').src = qrUrl;
+            } catch (error) {
+                console.error('Error loading WiFi credentials:', error);
+                document.getElementById('ssid-display').textContent = 'Feil ved lasting';
+            }
+        }
+
+        // Load credentials on page load
+        loadWifiCredentials();
 
         // SVG Elements
         const armL = document.querySelector('.armL');

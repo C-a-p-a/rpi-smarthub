@@ -497,6 +497,18 @@ def calendar():
     })
 
 
+# ===== WIFI CREDENTIALS =====
+
+@app.route('/wifi')
+def wifi_credentials():
+    """Get WiFi credentials for QR code generation"""
+    return jsonify({
+        "ssid": os.getenv("WIFI_SSID", ""),
+        "password": os.getenv("WIFI_PASSWORD", ""),
+        "type": "WPA"
+    })
+
+
 # ===== SHOPPING LIST ENDPOINTS =====
 
 @app.route('/shopping')

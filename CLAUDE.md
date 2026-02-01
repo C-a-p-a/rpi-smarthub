@@ -80,6 +80,8 @@ Configuration stored in `.env` (copy from `.env.example`):
 - `SPORTDB_API_KEY` - Football match data
 - `ENTUR_STOP_ID` - Bus stop ID for departures
 - `CALENDAR_FEEDS` - Comma-separated iCal URLs
+- `WIFI_SSID` - WiFi network name for QR code
+- `WIFI_PASSWORD` - WiFi password for QR code
 
 ## Localization
 
