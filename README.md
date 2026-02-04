@@ -2,7 +2,6 @@
 
 A smart home dashboard for Raspberry Pi designed as a wall-mounted display. Shows real-time information including weather, public transport, news, stocks, football matches, calendar events, and a collaborative shopping list.
 
-Built for a shared residence in Bergen, Norway (W56).
 
 ## Features
 
@@ -17,7 +16,7 @@ Built for a shared residence in Bergen, Norway (W56).
 
 ## Requirements
 
-- Raspberry Pi (tested on Pi 4)
+- Raspberry Pi (tested on Pi 5)
 - Python 3.7+
 - Display (optimized for 1280x720)
 
