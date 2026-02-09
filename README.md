@@ -1,6 +1,6 @@
 # RPi SmartHub
 
-A smart home dashboard for Raspberry Pi designed as a wall-mounted display. Shows real-time information including weather, public transport, news, stocks, football matches, calendar events, and a collaborative shopping list.
+A smart home dashboard for Raspberry Pi designed as a wall-mounted display (designed and tested on Raspberry Pi Touch 2). Shows real-time information including weather, public transport, news, stocks, football matches, calendar events, and a collaborative shopping list.
 
 
 ## Features
