@@ -63,6 +63,71 @@ function getFallbackIcon(symbolCode) {
     return weatherFallbackIcons.sun;
 }
 
+// Classify symbol code into a weather theme category
+function getWeatherTheme(symbolCode) {
+    const base = symbolCode.replace(/_day|_night/g, '');
+    if (base.includes('snow')) return 'snowy';
+    if (base.includes('thunder')) return 'thunder';
+    if (base.includes('rain') || base.includes('sleet')) return 'rainy';
+    if (base === 'cloudy' || base === 'fog') return 'cloudy';
+    if (base === 'partlycloudy') return 'partlycloudy';
+    return 'sunny';
+}
+
+// Decorative SVG elements for each weather theme
+const weatherThemeDecor = {
+    sunny: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="30" r="16" fill="#FBBF24"/>
+        <g stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round">
+            <line x1="50" y1="6" x2="50" y2="12"/>
+            <line x1="50" y1="48" x2="50" y2="54"/>
+            <line x1="26" y1="30" x2="32" y2="30"/>
+            <line x1="68" y1="30" x2="74" y2="30"/>
+            <line x1="33" y1="13" x2="37.2" y2="17.2"/>
+            <line x1="62.8" y1="42.8" x2="67" y2="47"/>
+            <line x1="33" y1="47" x2="37.2" y2="42.8"/>
+            <line x1="62.8" y1="17.2" x2="67" y2="13"/>
+        </g>
+    </svg>`,
+    partlycloudy: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="58" cy="22" r="12" fill="#FBBF24"/>
+        <g stroke="#FBBF24" stroke-width="2" stroke-linecap="round">
+            <line x1="58" y1="4" x2="58" y2="8"/>
+            <line x1="58" y1="36" x2="58" y2="40"/>
+            <line x1="40" y1="22" x2="44" y2="22"/>
+            <line x1="72" y1="22" x2="76" y2="22"/>
+        </g>
+        <path d="M18 52c-6 0-11-5-11-11 0-5.5 4-10 9.3-10.8C17.8 23.4 24.4 18 32.2 18c7.5 0 13.8 5 15.7 11.9 1.2-.1 2.5-.2 3.8-.2 8 0 14.6 6.5 14.6 14.6S59.7 58.8 51.7 58.8H18V52z" fill="#94A1B2"/>
+    </svg>`,
+    cloudy: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 55c-7 0-12.5-5.5-12.5-12.5 0-6.2 4.5-11.4 10.5-12.3C19.5 22 27 16 36 16c8.5 0 15.7 5.7 17.9 13.5 1-.1 2.1-.2 3.1-.2 9.2 0 16.5 7.5 16.5 16.5S66.2 62.3 57 62.3H20V55z" fill="#94A1B2"/>
+    </svg>`,
+    rainy: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 42c-6 0-11-5-11-11 0-5.5 4-10 9.3-10.8C19.8 13.4 26.4 8 34.2 8c7.5 0 13.8 5 15.7 11.9 1.2-.1 2.5-.2 3.8-.2 8 0 14.6 6.5 14.6 14.6S61.7 48.8 53.7 48.8H20V42z" fill="#94A1B2"/>
+        <g stroke="#7F9CF5" stroke-width="2.5" stroke-linecap="round">
+            <line x1="28" y1="54" x2="24" y2="66"/>
+            <line x1="40" y1="54" x2="36" y2="66"/>
+            <line x1="52" y1="54" x2="48" y2="66"/>
+            <line x1="34" y1="62" x2="30" y2="74"/>
+            <line x1="46" y1="62" x2="42" y2="74"/>
+        </g>
+    </svg>`,
+    snowy: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 42c-6 0-11-5-11-11 0-5.5 4-10 9.3-10.8C19.8 13.4 26.4 8 34.2 8c7.5 0 13.8 5 15.7 11.9 1.2-.1 2.5-.2 3.8-.2 8 0 14.6 6.5 14.6 14.6S61.7 48.8 53.7 48.8H20V42z" fill="#94A1B2"/>
+        <g fill="#E5E7EB">
+            <circle cx="26" cy="56" r="2.5"/>
+            <circle cx="40" cy="60" r="2.5"/>
+            <circle cx="54" cy="56" r="2.5"/>
+            <circle cx="33" cy="68" r="2.5"/>
+            <circle cx="47" cy="68" r="2.5"/>
+        </g>
+    </svg>`,
+    thunder: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 42c-6 0-11-5-11-11 0-5.5 4-10 9.3-10.8C19.8 13.4 26.4 8 34.2 8c7.5 0 13.8 5 15.7 11.9 1.2-.1 2.5-.2 3.8-.2 8 0 14.6 6.5 14.6 14.6S61.7 48.8 53.7 48.8H20V42z" fill="#94A1B2"/>
+        <polygon points="42,48 34,64 40,64 36,78 52,58 44,58 50,48" fill="#FBBF24"/>
+    </svg>`
+};
+
 function formatTime(dateString) {
     const date = new Date(dateString);
     return date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
@@ -192,6 +257,24 @@ function renderWeather(data) {
     html += '</div>';
 
     container.innerHTML = html;
+
+    // Apply weather theme to widget
+    const widget = container.closest('.widget-weather');
+    if (widget) {
+        const theme = getWeatherTheme(currentSymbol);
+        // Remove any existing theme classes
+        widget.className = widget.className.replace(/weather-theme-\S+/g, '').trim();
+        widget.classList.add(`weather-theme-${theme}`);
+
+        // Add or replace decorative SVG
+        let decor = widget.querySelector('.weather-theme-decor');
+        if (!decor) {
+            decor = document.createElement('div');
+            decor.className = 'weather-theme-decor';
+            widget.appendChild(decor);
+        }
+        decor.innerHTML = weatherThemeDecor[theme] || '';
+    }
 }
 
 async function updateWeather() {

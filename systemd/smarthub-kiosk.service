@@ -1,0 +1,40 @@
+[Unit]
+Description=SmartHub Chromium Kiosk
+After=graphical.target smarthub-api.service smarthub-frontend.service
+Wants=smarthub-api.service smarthub-frontend.service
+
+[Service]
+Type=simple
+User=pi
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+ExecStartPre=/bin/sleep 5
+ExecStartPre=/bin/sh -c 'xset -display :0 s off && xset -display :0 s noblank || true'
+ExecStartPre=/bin/sh -c 'rm -rf /home/pi/.config/chromium/Singleton* /home/pi/.config/chromium/Default/Preferences.lock 2>/dev/null || true'
+ExecStart=/usr/bin/chromium \
+    --kiosk \
+    --noerrdialogs \
+    --disable-infobars \
+    --disable-session-crashed-bubble \
+    --disable-restore-session-state \
+    --disable-features=TranslateUI \
+    --check-for-update-interval=31536000 \
+    --no-first-run \
+    --disable-background-networking \
+    --disable-sync \
+    --disable-notifications \
+    --disable-component-update \
+    --disable-domain-reliability \
+    --disable-client-side-phishing-detection \
+    --disable-breakpad \
+    --autoplay-policy=no-user-gesture-required \
+    http://localhost:3000
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=300
+StartLimitBurst=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=graphical.target

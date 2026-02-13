@@ -1,0 +1,17 @@
+[Unit]
+Description=SmartHub Flask API Server
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/rpi-smarthub/server
+EnvironmentFile=/home/pi/rpi-smarthub/.env
+ExecStart=/usr/bin/python3 app.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

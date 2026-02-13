@@ -35,7 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ];
 
-    function isNorthbound(destination) {
+    // Linjer som alltid skal vises uansett retning
+    const ALWAYS_SHOW_LINES = ['3'];
+
+    function isNorthbound(line, destination) {
+        if (ALWAYS_SHOW_LINES.includes(line)) return true;
         const dest = destination.toLowerCase();
         // Returner true hvis destinasjonen IKKE matcher noen sørgående
         return !SOUTHBOUND_DESTINATIONS.some(south => dest.includes(south));
@@ -101,10 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Filter for northbound departures only
+            // Filter for northbound departures only (with exceptions for specific lines)
             const northboundDepartures = departures.filter(dep => {
+                const line = dep.serviceJourney?.line?.publicCode || '';
                 const dest = dep.destinationDisplay?.frontText || '';
-                return isNorthbound(dest);
+                return isNorthbound(line, dest);
             });
 
             if (northboundDepartures.length === 0) {

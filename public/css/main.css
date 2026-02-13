@@ -589,6 +589,61 @@ html, body {
     font-size: 1rem;
 }
 
+/* === Weather Theme — Corner Glow === */
+.widget-weather {
+    position: relative;
+    transition: background 1s ease;
+}
+
+.widget-weather.weather-theme-sunny {
+    background: radial-gradient(ellipse at top right, rgba(251, 191, 36, 0.25) 0%, rgba(251, 150, 20, 0.08) 35%, var(--bg-card) 65%);
+}
+
+.widget-weather.weather-theme-partlycloudy {
+    background: radial-gradient(ellipse at top right, rgba(251, 191, 36, 0.15) 0%, rgba(148, 163, 184, 0.08) 35%, var(--bg-card) 65%);
+}
+
+.widget-weather.weather-theme-cloudy {
+    background: radial-gradient(ellipse at top right, rgba(148, 163, 184, 0.2) 0%, rgba(100, 116, 139, 0.07) 35%, var(--bg-card) 65%);
+}
+
+.widget-weather.weather-theme-rainy {
+    background: radial-gradient(ellipse at top right, rgba(96, 165, 250, 0.25) 0%, rgba(59, 130, 246, 0.08) 35%, var(--bg-card) 65%);
+}
+
+.widget-weather.weather-theme-snowy {
+    background: radial-gradient(ellipse at top right, rgba(199, 210, 254, 0.25) 0%, rgba(165, 180, 252, 0.08) 35%, var(--bg-card) 65%);
+}
+
+.widget-weather.weather-theme-thunder {
+    background: radial-gradient(ellipse at top right, rgba(168, 85, 247, 0.25) 0%, rgba(251, 191, 36, 0.06) 35%, var(--bg-card) 65%);
+}
+
+/* Weather theme decorative SVG element */
+.weather-theme-decor {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 80px;
+    height: 80px;
+    opacity: 0.2;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.weather-theme-decor svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Ensure weather content stays above the decor */
+.widget-weather .widget-title,
+.widget-weather .widget-subtitle,
+.widget-weather .weather-content {
+    position: relative;
+    z-index: 1;
+}
+
 /* === Departures Widget === */
 .widget-departures {
     flex: 1;

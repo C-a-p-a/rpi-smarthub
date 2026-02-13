@@ -68,13 +68,43 @@ pip install -r requirements.txt
 
 ### Raspberry Pi Deployment
 
-Use the included startup script:
+#### Option 1: Systemd Services (Recommended for 24/7 operation)
+
+Install as system services for automatic startup, auto-restart on crash, and persistence across SSH disconnects:
+
+```bash
+# Install and start services
+sudo ./scripts/install-services.sh
+
+# Check status
+sudo systemctl status smarthub-api
+sudo systemctl status smarthub-frontend
+sudo systemctl status smarthub-kiosk
+
+# View logs
+sudo journalctl -u smarthub-api -f
+
+# Restart a service
+sudo systemctl restart smarthub-api
+
+# Uninstall services
+sudo ./scripts/uninstall-services.sh
+```
+
+The installer sets up three services:
+- `smarthub-api` - Flask API server (port 5000)
+- `smarthub-frontend` - Static file server (port 3000)
+- `smarthub-kiosk` - Chromium in kiosk mode (auto-starts on boot)
+
+#### Option 2: Manual Start
+
+For development or temporary use:
 
 ```bash
 ./scripts/start.sh
 ```
 
-For auto-start on boot, create a systemd service.
+Note: Manual start will stop when SSH disconnects.
 
 ## Telegram Bot Commands
 
@@ -106,7 +136,13 @@ The shopping list can be managed via Telegram:
 ├── data/
 │   └── shopping_list.json  # Persistent shopping data
 ├── scripts/
-│   └── start.sh            # Startup script
+│   ├── start.sh            # Manual startup script
+│   ├── install-services.sh # Systemd service installer
+│   └── uninstall-services.sh # Systemd service uninstaller
+├── systemd/
+│   ├── smarthub-api.service      # Flask API service
+│   ├── smarthub-frontend.service # HTTP server service
+│   └── smarthub-kiosk.service    # Chromium kiosk service
 ├── .env.example            # Environment variables template
 ├── requirements.txt        # Python dependencies
 └── README.md

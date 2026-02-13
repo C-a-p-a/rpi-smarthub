@@ -1,0 +1,16 @@
+[Unit]
+Description=SmartHub Frontend HTTP Server
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/rpi-smarthub/public
+ExecStart=/usr/bin/python3 -m http.server 3000
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
